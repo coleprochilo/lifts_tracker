@@ -171,7 +171,6 @@ class User:
             all_aliases = conn.execute("SELECT exercise_id, alias FROM exercise_aliases").fetchall()
 
         print(f"No exercise found for '{name}'.")
-        print("Existing exercises: " + ", ".join(e[1] for e in all_exercises))
 
         close_match = next((e for e in all_exercises if name in e[1] or e[1] in name), None)
         close_match = close_match or next((a for a in all_aliases if name in a[1] or a[1] in name), None)
@@ -628,7 +627,7 @@ def main_loop(user):
             with get_conn() as conn:
                 valid_splits = [r[0] for r in conn.execute("SELECT name FROM split_days").fetchall()]
             while True:
-                split_day = input(f"Split day ({'/'.join(valid_splits)}): ").strip()
+                split_day = input(f"Split day ({', '.join(valid_splits)}): ").strip()
                 if split_day in valid_splits:
                     break
                 print(f"Invalid split day, choose from {', '.join(valid_splits)}")
