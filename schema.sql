@@ -16,10 +16,16 @@ CREATE TABLE IF NOT EXISTS users (
     date_created  TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS split_days (
+    split_day_id  INTEGER PRIMARY KEY AUTOINCREMENT,
+    name          TEXT NOT NULL UNIQUE
+);
+
 CREATE TABLE IF NOT EXISTS workout_sessions (
     workout_id    INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id       INTEGER NOT NULL REFERENCES users(user_id),
-    date          TEXT NOT NULL
+    date          TEXT NOT NULL,
+    split_day     TEXT REFERENCES split_days(name)
 );
 
 CREATE TABLE IF NOT EXISTS exercise_instances (
@@ -37,6 +43,6 @@ CREATE TABLE IF NOT EXISTS exercise_sets (
     instance_id  INTEGER NOT NULL REFERENCES exercise_instances(instance_id),
     set_number   INTEGER NOT NULL,
     weight       REAL,
-    reps         INTEGER,
+    reps         REAL,
     rest_time    REAL
 );

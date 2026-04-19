@@ -12,3 +12,5 @@ def init_db():
         schema = f.read()
     with get_conn() as conn:
         conn.executescript(schema)
+        for split_day in ("S/L", "C/T", "B/B"):
+            conn.execute("INSERT OR IGNORE INTO split_days (name) VALUES (?)", (split_day,))
