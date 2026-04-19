@@ -6,12 +6,30 @@ from db import get_conn, init_db
 
 
 class User:
+    """
+    Represents a logged-in user. Holds user identity and provides all
+    methods for interacting with the database on behalf of that user.
+    """
+
     def __init__(self, user_id, username):
         self.user_id = user_id
         self.username = username
 
     @staticmethod
     def register(username, password):
+        """
+        Registers a new user and saves them to the database.
+
+        Params:
+            username (str): desired username
+            password (str): plaintext password, will be hashed before storage
+
+        Returns:
+            User: a new User instance for the registered user
+
+        Exits:
+            if username already exists in the database
+        """
         with get_conn() as conn:
             existing = conn.execute("SELECT user_id FROM users WHERE username = ?", (username,)).fetchone()
             if existing:
@@ -27,6 +45,19 @@ class User:
 
     @staticmethod
     def login(username, password):
+        """
+        Authenticates an existing user against the database.
+
+        Params:
+            username (str): the user's username
+            password (str): plaintext password to verify against stored hash
+
+        Returns:
+            User: a User instance for the authenticated user
+
+        Exits:
+            if username or password is empty, username not found, or password is incorrect
+        """
         if not username or not password:
             sys.exit("Username or password is empty.")
         with get_conn() as conn:
@@ -39,10 +70,33 @@ class User:
         return User(row[0], username)
 
     def create_workout(self, date, split_day):
+        """
+        Creates a pending workout session dict. The session is not written
+        to the database until the first exercise instance is logged (lazy creation).
+
+        Params:
+            date (str): session date in YYYY-MM-DD format
+            split_day (str): the muscle split for this session (e.g. 'S/L', 'C/T', 'B/B')
+
+        Returns:
+            dict: session dict with keys user_id, date, split_day, workout_id (None until first insert)
+        """
         print(f"Session ready for {date} ({split_day}) — will be saved on first exercise logged.")
         return {"user_id": self.user_id, "date": date, "split_day": split_day, "workout_id": None}
 
     def add_exercise_instance(self, new_instance, session):
+        """
+        Resolves the exercise, lazily creates the session if needed, checks for duplicates,
+        then inserts the exercise instance and its sets into the database.
+
+        Params:
+            new_instance (Exercise_Instance): the instance to log
+            session (dict): the current session dict, workout_id may be None on first call
+
+        Returns:
+            None. Prints recent entries for the exercise after logging.
+            Skips insert and prints a message if an identical entry already exists.
+        """
         exercise_id = self._resolve_exercise(new_instance.entered_name)
 
         with get_conn() as conn:
@@ -81,6 +135,17 @@ class User:
         self._print_recent(exercise_id, new_instance.entered_name)
 
     def _resolve_exercise(self, name):
+        """
+        Resolves an entered exercise name to an exercise_id in the database.
+        Checks in order: primary name → alias → fuzzy match → prompt user to reassign or create.
+        Prompts user to confirm any match before accepting it.
+
+        Params:
+            name (str): the exercise name as entered by the user
+
+        Returns:
+            int: the exercise_id of the matched or newly created exercise
+        """
         name = name.lower()
         with get_conn() as conn:
             # check primary name
@@ -120,6 +185,17 @@ class User:
         return self._reassign_or_create(name)
 
     def _reassign_or_create(self, name):
+        """
+        Prompts the user to either map the entered name to an existing exercise
+        or create a brand new exercise with a primary name and optional aliases.
+        The entered name is always saved as an alias for whichever exercise it maps to.
+
+        Params:
+            name (str): the unresolved exercise name entered by the user
+
+        Returns:
+            int: the exercise_id of the matched or newly created exercise
+        """
         with get_conn() as conn:
             all_exercises = conn.execute("SELECT exercise_id, primary_name FROM exercises").fetchall()
         print("Existing exercises: " + ", ".join(e[1] for e in all_exercises))
@@ -141,6 +217,17 @@ class User:
         return exercise_id
 
     def _print_recent(self, exercise_id, entered_name, n=3):
+        """
+        Prints the n most recent instances of an exercise for this user.
+
+        Params:
+            exercise_id (int): the exercise to look up
+            entered_name (str): the name as entered by the user, used in the header
+            n (int): number of recent instances to show, defaults to 3
+
+        Returns:
+            None. Prints directly to stdout.
+        """
         with get_conn() as conn:
             primary = conn.execute("SELECT primary_name FROM exercises WHERE exercise_id = ?", (exercise_id,)).fetchone()[0]
             rows = conn.execute("""
@@ -164,6 +251,17 @@ class User:
             print(f"{date} | intensity: {intensity} | sets: {','.join(sets)} | notes: {notes}")
 
     def get_workouts_by_date(self, date):
+        """
+        Looks up all workout sessions for this user on a given date.
+        If one session found, prints its full summary.
+        If multiple sessions found, lists them and prompts the user to select one.
+
+        Params:
+            date (str): date in YYYY-MM-DD format
+
+        Returns:
+            None. Prints directly to stdout.
+        """
         with get_conn() as conn:
             rows = conn.execute(
                 "SELECT workout_id, split_day FROM workout_sessions WHERE user_id = ? AND date = ?",
@@ -197,13 +295,42 @@ class User:
 
 
 def _fmt_weight(w):
+    """
+    Formats a numeric value by stripping unnecessary decimals.
+    e.g. 225.0 -> 225, 52.5 -> 52.5
+
+    Params:
+        w (float): the value to format
+
+    Returns:
+        int or float: int if the value is whole, float otherwise
+    """
     return int(w) if w == int(w) else w
 
 
 VALID_INTENSITIES = ("light", "normal", "heavy")
 
+
 class Exercise_Instance:
+    """
+    Represents a single exercise instance to be logged.
+    Holds all data for one exercise performed in a session before it is written to the DB.
+    """
+
     def __init__(self, entered_name, intensity, workout_index, notes, weights=None, reps=None, rest_times=None):
+        """
+        Params:
+            entered_name (str): the name as typed by the user
+            intensity (str): one of VALID_INTENSITIES
+            workout_index (int): the order of this exercise in the session
+            notes (str or None): optional notes
+            weights (list of float): weight used per set
+            reps (list of float): reps completed per set
+            rest_times (list of float or None): rest time in minutes between sets, None for last set
+
+        Raises:
+            ValueError: if weights and reps lists are different lengths
+        """
         self.entered_name = entered_name.lower()
         self.intensity = intensity
         self.workout_index = workout_index
@@ -216,6 +343,17 @@ class Exercise_Instance:
 
 
 def prompt_log_exercise(user, session):
+    """
+    Interactive CLI prompt to collect all data for a new exercise instance
+    and log it to the current session.
+
+    Params:
+        user (User): the logged-in user
+        session (dict): the current session dict
+
+    Returns:
+        None. Calls user.add_exercise_instance() with the collected data.
+    """
     while True:
         name = input("Exercise name: ").strip()
         if name:
@@ -300,6 +438,16 @@ def prompt_log_exercise(user, session):
 
 
 def prompt_view_history(user):
+    """
+    Interactive CLI prompt to view the full history of an exercise for the logged-in user,
+    with an optional intensity filter.
+
+    Params:
+        user (User): the logged-in user
+
+    Returns:
+        None. Prints exercise history directly to stdout.
+    """
     name = input("Exercise name: ").strip().lower()
     with get_conn() as conn:
         row = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (name,)).fetchone()
@@ -343,6 +491,16 @@ def prompt_view_history(user):
 
 
 def print_session_summary(session):
+    """
+    Prints a formatted summary of all exercise instances in a session,
+    ordered by workout_index.
+
+    Params:
+        session (dict): must contain workout_id, date, and split_day
+
+    Returns:
+        None. Prints directly to stdout.
+    """
     with get_conn() as conn:
         rows = conn.execute("""
             SELECT ei.instance_id, ei.entered_name, ei.intensity, ei.workout_index, ei.notes,
@@ -364,6 +522,18 @@ def print_session_summary(session):
 
 
 def session_loop(user, session):
+    """
+    Inner loop for an active workout session. Allows the user to log exercises
+    or confirm/end the session. On confirm, shows a summary and allows editing
+    any instance before finalizing.
+
+    Params:
+        user (User): the logged-in user
+        session (dict): the current session dict
+
+    Returns:
+        None.
+    """
     while True:
         print("\n1. Log exercise\n2. Confirm session")
         choice = input("\n> ").strip()
@@ -399,6 +569,16 @@ def session_loop(user, session):
 
 
 def manage_split_days():
+    """
+    Displays the current list of valid split days and allows the user to add a new one.
+    New values are persisted to the split_days table in the database.
+
+    Params:
+        None
+
+    Returns:
+        None. Prints current split days and confirmation of any addition.
+    """
     with get_conn() as conn:
         splits = [r[0] for r in conn.execute("SELECT name FROM split_days").fetchall()]
     print("\nCurrent split days: " + ", ".join(splits))
@@ -410,6 +590,16 @@ def manage_split_days():
 
 
 def main_loop(user):
+    """
+    Main menu loop for the application. Presents options to start a session,
+    view history, look up workouts by date, manage split days, or quit.
+
+    Params:
+        user (User): the logged-in user
+
+    Returns:
+        None.
+    """
     print(f"\n{'='*50}\n         LIFTS TRACKER - Welcome, {user.username}\n{'='*50}")
     while True:
         print("\n1. Start new workout session\n2. View exercise history\n3. View workouts by date\n4. Manage split days\nq. Quit")
