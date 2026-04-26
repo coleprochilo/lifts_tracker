@@ -1,0 +1,103 @@
+JUST A NOTE AT THE TOP. I WANT THE ORDER OF THINGS IN THE NAME TO BE IF IT WAS KNEELING, STANDING, SEATED, THEN WHAT GRIP LIKE SUPINATED, PRONATED, NETURAL, THEN IF IT WAS ONE ARM, THEN IF IT WAS DB OR BB OR CABLE, THEN THE NAME OF THE EXERCISE LIKE ROWS OR BENCH OR WHATEVER. PLEASE LET ME KNOW ANY PRIMARY NAMES I DID NOT FOLLOW THIS ON. PLEASE NOT ANY TYPOS IN PRIMARY NAMES, PLEASE GIVE ME YOU OPINION ON IF EXERCISES SHOULD BE PLURAL (FLYS) OR NOT (FLY).
+
+Squat variations:
+
+squat, squat (b), heavy squat, heavy squat (b), light squat, light squat (b), bike squats, cossack squats, db sumo squats, baby leg press, one leg baby leg press
+
+MY NOTES:
+the significance of the (b) after a few of the squats just meant that I used a belt for that day. I dont think I care to include this info in this app, I will continue to track it in my spreadsheet though, so I want it as an alias. This means that all "squat (b)" entries should just go to squat. Also, squat is the primary name for this exercse. squats aliases will be squat (b), heavy squat, heavy squat (b), light squat, light squat (b). The next exercise primary name is bike squats. the next primary name is cossack squats. The next primary name is db sumo squats. The next primary name is baby leg press. The next primary name is one leg baby leg press. 
+
+Bench variations:
+
+bench (p), heavy bench, heavy bench (p), light bench, light bench (p), llight bench (p)
+
+MY NOTES:
+bench is the first primary name, its aliases are bench (p) (the p stands for pause like be stood for belt in squat), heavy bench, heavy bench (p), light bench, light bench (p), and llight bench (p). 
+
+Row variations:
+
+bb rows, supinated bb rows, supinted bb rows, incline db rows, one arm db rows, one arm dumbell rows, kneeling one arm cable rows, kneeling 1 arm cable rows, one arm kneeling cable rows, seated neutral cable rows, neutral seated cabler rows, seated pronated cable rows, seated supinated one arm cable rows, supinated cable rows, supinated kneeling cable rows, r delt knee on bench rows
+
+MY NOTES:
+bb rows is the first primary name. supinated bb rows are primary, aliases are supinted bb rows. incline db rows is the next primary name. one arm db rows is the next primary name, aliases are one arm dumbell rows. Next primary is kneeling one arm cable rows, aliases are kneeling 1 arm cable rows, one arm kneeling cable rows. Next primary is seated neutral cable rows, aliases are neutral seated cable rows, neutral seated cabler rows. Next primary is seated pronated cable rows. next primary is seated supinated one arm cable rows. Next primary is seated supinated cable rows. Next primary is kneeling supinated cable rows, aliases are supinated kneeling cable rows. Final primary name is knee on bench db r delt rows, alias is r delt knee on bench rows.
+
+Lat pulldown variations:
+
+lat pulldowns, neutral lat pulldowns, wide grip lat pulldowns, two grip lat pulldowns, supinated lat pulldows
+
+MY NOTES:
+primary name is lat pulldowns. primary name is neutral lat pulldowns. primary name is wide grip lat pulldowns. primary is two grip lat pulldowns. primary is supinated lat pulldowns, alias is supinated lat pulldows.
+
+Curl variations:
+
+bayesian curls, standing bayesian curls, bb curls, db curls, db hammer curls, hammer curls, incline curls, incline bicep curls, incline db curls, one arm db preacher curls, db one arm preacher curls, one db preacher curls, ez bar preacher curls, ez preacher curls, spider curls, rope curls, flat bar cable curls, straight bar cable curls, single arm cable curls, one arm cable curls
+
+MY NOTES:
+primary is bayesian curls, aliases are standing bayesian curls. primary is bb curls. primary is db curls. primary is db hammer curls, aliases are hammer curls. primary is incline db curls, aliases are incline curls and incline bicep curls. Primary is one arm db preacher curls, aliases are db one arm preacher curls, one db preacher curls. primary is ez bar preacher curls, aliases are ez preacher curls. primary is spider curls. primary is rope cable curls. primary is flat bar cable curls, aliases are straight bar cable curls. primary is one arm cable curls, aliases are single arm cable curls.
+
+Tricep variations:
+
+rope pushdowns, flat bar pushdowns, straight bar pushdowns, straight bar cable pushdowns, straight bar cable triceps extensions, flat bar cable pushdowns (not in list but likely same), v bar pushdowns, lean back cable tricep pushdowns, rope cable tricep extensions, standing overhead tricep cable extensions, one arm cable pushdowns, single arm cable extensions, one arm db overhead extensions, one arm overhead db extensions, skull crushers, triceps press machine, tricpes press machine
+
+MY NOTES:
+primary is rope triceps pushdowns, aliases are rope pushdowns. primary is flat bar triceps pushdowns, aliases are flat bar pushdowns, straight bar pushdowns, straight bar cable pushdowns, flat bar cable pushdowns. primary is standing flat bar triceps extensions, aliases are standing overhead tricep cable extensions. primary is seated flat bar triceps extensions. primary is v bar pushdowns. primary is lean back one arm cable triceps pushdowns, alias is lean back cable tricep pushdowns. primary is standing rope triceps extensions, aliases are rope cable tricep extensions. primary is seated rope triceps extensions. primary is one arm cable pushdowns. primary is single arm cable triceps extensions. primary is one arm db overhead triceps extensions, aliases are one arm db triceps overhead extensions, one arm db overhead extensions, one arm overhead db extensions. primary is db skull crushers, aliases are skull crushers. primary is triceps press machine, aliases are tricpes press machine.
+
+Lateral raise variations:
+
+cable lateral raises, db laterl raises, lean in db lateral raises, lean out db lateral raises, leaning db lateral raises, leaning db lateral flys, leaning lateral db raises, leaning lateral raises, incline leaning lateral raises, lincline db lateral raises
+
+MY NOTES:
+primary is cable lateral raises. primary is db lateral raises, aliases are db laterl raises. primary is lean in db lateral raises, aliases are leaning db lateral raises, leaning db lateral flys, leaning lateral db raises, leaning lateral raises. primary is lean out db lateral raises. primary is incline db lateral raises, aliases are incline leaning lateral raises, lincline db lateral raises.
+
+Rear delt variations:
+
+bent over r delt flys, bent over r delt cable flys, bent over db flys, cable r delt flys, r delt cable flys, seated bent over r delt flys, seated db r delt flys, mr incredible, reverse mr incredible
+
+MY NOTES:
+primary is db bent over r delt flys, aliases are bent over r delt flys, bent over db flys. primary is bent over cable r delt flys, aliases are cable r delt flys, r delt cable flys. primary is seated bent over r delt flys, aliases are seated db r delt flys. primary is mr incredible (this is a chest exercise acutally). primary is reverse mr incredible (this is an r delt exercise with a similar name to the prior chest exercise).
+
+Chest variations:
+
+incline db bench, incline db press, incline db fliys, incline db flys, flat db flys, chest fly machine, pec fly machine, chest press machine, smith machine incline press, standing cable chest press, standing single arm db fly, upper pec cable flys, seated upper pec cable flys
+
+MY NOTES:
+primary is incline db press, aliases are incline db bench. primary is incline db flys, aliases are incline db fliys. primary is flat db flys. primary is pec fly machine, aliases are chest fly machine. primary is chest press machine. primary is incline smith machine press, aliases are smith machine incline press. primary is standing cable chest press. primary is standing one arm db chest flys, aliases are standing single arm db fly. primary is cable upper pec flys, aliases are upper pec cable flys. primary is seated cable upper pec flys, aliases are seated upper pec cable flys.
+
+Shoulder press variations:
+
+db overhead press, db seated overhead press, seated db shoulder press, upright rows
+
+MY NOTES:
+primary is standing db overhead press, aliases are db overhead press. primary is seated db overhead press, aliases are db seated overhead press, seated db shoulder press. Primary is upright rows.
+
+Pullover/pulldown cable variations:
+
+flat bar cable pullovers, rope lat pullovers, rope pullovers
+
+MY NOTES:
+primary is flat bar lat pullovers, aliases are flat bar cable pullovers. primary is rope lat pullovers, aliases are rope pullovers.
+
+RDL variations:
+
+bb rdls, db rdls, db rdls (b) (2 dbs)
+
+primary is bb rdls. primary is db rdls, aliases are db rdls (b) (2 dbs)
+
+Leg variations:
+
+hammy curls, leg extensions, db lunges, bulgarian split squats (2 dbs)
+
+MY NOTES:
+primary is hammy curls machine, aliases are hammy curls. primary is leg extensions machine, aliases are leg extensions. primary is walking db lunges. primary is standing db lunges, aliases are db lunges. primary is db bulgarian split squats, aliases are bulgarian split squats (2 dbs)
+
+Face pull variations:
+
+face pulls, rope face pulls
+
+primary is bar face pulls, aliases are face pulls. primary is rope face pulls.
+
+Misc:
+
+db kickbacks, sus machine in
+
+primary is db kickbacks. primary is hip adduction machine, aliases are sus machine in.

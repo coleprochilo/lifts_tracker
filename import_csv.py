@@ -59,12 +59,16 @@ def get_user_id(conn):
 
 def resolve_exercise(conn, name):
     name = name.lower().strip()
+    # check primary name
     row = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (name,)).fetchone()
     if row:
         return row[0]
+    # check aliases
     row = conn.execute("SELECT exercise_id FROM exercise_aliases WHERE alias = ?", (name,)).fetchone()
     if row:
         return row[0]
+    # not found — create as new primary (shouldn't happen if mapping is complete)
+    print(f"Warning: '{name}' not found in mapping, creating as new exercise.")
     conn.execute("INSERT INTO exercises (primary_name) VALUES (?)", (name,))
     return conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (name,)).fetchone()[0]
 
