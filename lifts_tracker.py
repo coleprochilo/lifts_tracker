@@ -1,5 +1,8 @@
 import sys
-import readline
+try:
+    import gnureadline as readline
+except ImportError:
+    import readline
 import bcrypt
 from datetime import date
 from dateutil import parser as dateparser
@@ -259,7 +262,7 @@ class User:
             primary = conn.execute("SELECT primary_name FROM exercises WHERE exercise_id = ?", (exercise_id,)).fetchone()[0]
             rows = conn.execute("""
                 SELECT ei.instance_id, ws.date, ei.intensity, ei.notes,
-                       es.weight, es.reps, es.set_number
+                       es.weight, es.reps, es.rest_time, es.set_number
                 FROM exercise_instances ei
                 JOIN workout_sessions ws ON ei.workout_id = ws.workout_id
                 JOIN exercise_sets es ON es.instance_id = ei.instance_id
@@ -270,12 +273,16 @@ class User:
         instances = {}
         for row in rows:
             key = (row[0], row[1], row[2], row[3])
-            instances.setdefault(key, []).append(f"{_fmt_weight(row[4])}x{_fmt_weight(row[5])}")
+            instances.setdefault(key, {"sets": [], "rests": []})
+            instances[key]["sets"].append(f"{_fmt_weight(row[4])}x{_fmt_weight(row[5])}")
+            if row[6] is not None:
+                instances[key]["rests"].append(str(_fmt_weight(row[6])))
 
         recent = list(instances.items())[:n]
         print(f"\n'{entered_name}' added for '{primary}'. Recent '{primary}' entries:")
-        for (instance_id, date, intensity, notes), sets in reversed(recent):
-            print(f"{date} | intensity: {intensity} | sets: {','.join(sets)} | notes: {notes}")
+        for (instance_id, date, intensity, notes), data in reversed(recent):
+            rest_str = f" | rest: {','.join(data['rests'])}" if data['rests'] else ""
+            print(f"{date} | intensity: {intensity} | sets: {','.join(data['sets'])}{rest_str} | notes: {notes}")
 
     def get_workouts_by_date(self, date):
         """
@@ -484,6 +491,7 @@ def prompt_view_history(user):
             print(f"No exercise found for '{name}'")
             return
         exercise_id = row[0]
+        primary_name = conn.execute("SELECT primary_name FROM exercises WHERE exercise_id = ?", (exercise_id,)).fetchone()[0]
         filter_intensity = input("Filter by intensity (leave blank for all): ").strip().lower() or None
         if filter_intensity:
             while filter_intensity not in VALID_INTENSITIES:
@@ -493,7 +501,7 @@ def prompt_view_history(user):
                     break
         query = """
             SELECT ei.instance_id, ws.date, ei.intensity, ei.workout_index, ei.notes,
-                   es.weight, es.reps, es.set_number
+                   es.weight, es.reps, es.rest_time, es.set_number
             FROM exercise_instances ei
             JOIN workout_sessions ws ON ei.workout_id = ws.workout_id
             JOIN exercise_sets es ON es.instance_id = ei.instance_id
@@ -511,10 +519,14 @@ def prompt_view_history(user):
     instances = {}
     for row in rows:
         key = (row[0], row[1], row[2], row[3], row[4])
-        instances.setdefault(key, []).append(f"{_fmt_weight(row[5])}x{_fmt_weight(row[6])}")
-    print(f"\n--- {name} history ---")
-    for (instance_id, date, intensity, workout_index, notes), sets in instances.items():
-        print(f"{date} | #{workout_index} | {intensity} | {','.join(sets)} | notes: {notes}")
+        instances.setdefault(key, {"sets": [], "rests": []})
+        instances[key]["sets"].append(f"{_fmt_weight(row[5])}x{_fmt_weight(row[6])}")
+        if row[7] is not None:
+            instances[key]["rests"].append(str(_fmt_weight(row[7])))
+    print(f"\n--- {primary_name} history ---")
+    for (instance_id, date, intensity, workout_index, notes), data in instances.items():
+        rest_str = f" | rest: {','.join(data['rests'])}" if data['rests'] else ""
+        print(f"{date} | #{workout_index} | {intensity} | {','.join(data['sets'])}{rest_str} | notes: {notes}")
 
 
 def print_session_summary(session):
@@ -531,7 +543,7 @@ def print_session_summary(session):
     with get_conn() as conn:
         rows = conn.execute("""
             SELECT ei.instance_id, ei.entered_name, ei.intensity, ei.workout_index, ei.notes,
-                   es.weight, es.reps, es.set_number
+                   es.weight, es.reps, es.rest_time, es.set_number
             FROM exercise_instances ei
             JOIN exercise_sets es ON es.instance_id = ei.instance_id
             WHERE ei.workout_id = ?
@@ -540,11 +552,15 @@ def print_session_summary(session):
     instances = {}
     for row in rows:
         key = (row[0], row[1], row[2], row[3], row[4])
-        instances.setdefault(key, []).append(f"{_fmt_weight(row[5])}x{_fmt_weight(row[6])}")
+        instances.setdefault(key, {"sets": [], "rests": []})
+        instances[key]["sets"].append(f"{_fmt_weight(row[5])}x{_fmt_weight(row[6])}")
+        if row[7] is not None:
+            instances[key]["rests"].append(str(_fmt_weight(row[7])))
     print("\n--- Session Summary ---")
     print(f"Date: {session['date']} | Split: {session['split_day']}")
-    for (instance_id, entered_name, intensity, workout_index, notes), sets in instances.items():
-        print(f"  #{workout_index} {entered_name} | {intensity} | {','.join(sets)} | notes: {notes}")
+    for (instance_id, entered_name, intensity, workout_index, notes), data in instances.items():
+        rest_str = f" | rest: {','.join(data['rests'])}" if data['rests'] else ""
+        print(f"  #{workout_index} {entered_name} | {intensity} | {','.join(data['sets'])}{rest_str} | notes: {notes}")
     print("-----------------------")
 
 

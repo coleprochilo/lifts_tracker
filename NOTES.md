@@ -203,13 +203,22 @@ q. Quit
 
 ### View Exercise History
 - Prompts exercise name (checks primary name then aliases)
+- Always displays primary name in the header, even if searched by alias
 - Optional intensity filter (validated against VALID_INTENSITIES)
 - Shows all instances ordered by date ASC
+- Format: `date | #index | intensity | sets | rest: values | notes`
+- Rest omitted from output if no rest values stored for that instance
 
 ### View Workouts by Date
 - If 1 session: shows full session summary directly
 - If multiple sessions: lists them with session id, split day, exercise count
 - User selects one, full summary shown
+
+### Display Format
+- All print functions (`_print_recent`, `prompt_view_history`, `print_session_summary`) show rest times
+- Format: `sets: 225x10,225x10 | rest: 2,1.5 | notes: None`
+- Rest values are comma separated, one per inter-set rest (last set has no rest)
+- Rest omitted entirely if no rest values exist for that instance
 
 ---
 
@@ -287,12 +296,14 @@ All numeric inputs loop until valid:
   (unlike `_resolve_exercise` which does fuzzy matching)
 - No way to delete a session or exercise from the CLI yet
 - No way to view all sessions (only by date)
+- No way to edit instances from past sessions (only editable during active session confirm flow) — TODO
 - CSV import `MONTH_OFFSETS` needs to be updated manually as new months are added to the spreadsheet
 
 ## Tab Completion
-- Implemented using Python's built-in `readline` module (macOS/Linux only)
+- Implemented using `gnureadline` (statically linked GNU readline, more reliable on macOS)
+- Import: `try: import gnureadline as readline` with fallback to `import readline`
 - `_get_exercise_completer()` loads all primary names from DB and returns a completer function
-- `_input_with_exercise_completion()` sets the completer, prompts for input, then clears the completer
+- `_input_with_exercise_completion(prompt)` sets the completer, prompts for input, then clears the completer
 - Applied to exercise name prompt in `prompt_log_exercise` and `prompt_view_history`
-- Completes against primary names only (not aliases)
-- Tab cycles through matches, works by prefix matching
+- Completes against primary names only (not aliases) — completion is prefix-based
+- Tab cycles through matches
