@@ -1,8 +1,36 @@
 import sys
+import readline
 import bcrypt
 from datetime import date
 from dateutil import parser as dateparser
 from db import get_conn, init_db
+
+
+def _get_exercise_completer():
+    """
+    Returns a readline completer function that matches against all exercise primary names.
+    """
+    with get_conn() as conn:
+        names = [r[0] for r in conn.execute("SELECT primary_name FROM exercises ORDER BY primary_name").fetchall()]
+
+    def completer(text, state):
+        matches = [n for n in names if n.startswith(text.lower())]
+        return matches[state] if state < len(matches) else None
+
+    return completer
+
+
+def _input_with_exercise_completion(prompt):
+    """
+    Prompts for input with tab completion against exercise primary names.
+    """
+    readline.set_completer(_get_exercise_completer())
+    readline.set_completer_delims('')
+    readline.parse_and_bind("tab: complete")
+    result = input(prompt).strip()
+    readline.set_completer(None)
+    readline.set_completer_delims(' \t\n')
+    return result
 
 
 class User:
@@ -354,7 +382,7 @@ def prompt_log_exercise(user, session):
         None. Calls user.add_exercise_instance() with the collected data.
     """
     while True:
-        name = input("Exercise name: ").strip()
+        name = _input_with_exercise_completion("Exercise name: ")
         if name:
             break
         print("Exercise name cannot be empty.")
@@ -447,7 +475,7 @@ def prompt_view_history(user):
     Returns:
         None. Prints exercise history directly to stdout.
     """
-    name = input("Exercise name: ").strip().lower()
+    name = _input_with_exercise_completion("Exercise name: ").lower()
     with get_conn() as conn:
         row = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (name,)).fetchone()
         if not row:
@@ -654,14 +682,20 @@ if __name__ == "__main__":
     try:
         init_db()
         print(" -------------------- Create new user or login -------------------- \n")
-        create_or_login = input("Type create to create new user, type login to login with existing user\n").lower()
-        if create_or_login == "create":
-            user = User.register(input("Username: "), input("Password: "))
-        elif create_or_login == "login":
-            user = User.login(input("Username: "), input("Password: "))
-        else:
-            print("I said enter create or login, what else did your dumbass type\n")
-            sys.exit()
+        while True:
+            create_or_login = input("Type create to create new user, login to login, or list to see all users\n").lower()
+            if create_or_login == "create":
+                user = User.register(input("Username: "), input("Password: "))
+                break
+            elif create_or_login == "login":
+                user = User.login(input("Username: "), input("Password: "))
+                break
+            elif create_or_login == "list":
+                with get_conn() as conn:
+                    users = [r[0] for r in conn.execute("SELECT username FROM users ORDER BY username").fetchall()]
+                print("Registered users:\n" + "\n".join(users) if users else "No users registered yet.")
+            else:
+                print("I said enter create, login, or list, what else did your dumbass type\n")
         main_loop(user)
     except KeyboardInterrupt:
         print("\nExited. See you next time.")

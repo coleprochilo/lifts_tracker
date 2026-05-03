@@ -4,7 +4,7 @@
 
 EXERCISE_MAPPING = {
     # Squat
-    "squat": ["squat (b)", "heavy squat", "heavy squat (b)", "light squat", "light squat (b)"],
+    "squat": ["squat (b)", "heavy squat", "heavy squat (b)", "light squat", "light squat (b)", "light squat (nb)"],
     "bike squats": [],
     "cossack squats": [],
     "db sumo squats": [],
@@ -22,8 +22,9 @@ EXERCISE_MAPPING = {
     "kneeling one arm cable rows": ["kneeling 1 arm cable rows", "one arm kneeling cable rows"],
     "seated neutral cable rows": ["neutral seated cable rows", "neutral seated cabler rows"],
     "seated pronated cable rows": [],
+    "seated neutral one arm cable rows": ["d grip seated cable rows"],
     "seated supinated one arm cable rows": [],
-    "seated supinated cable rows": ["supinated cable rows"],
+    "seated supinated cable rows": ["supinated cable rows", "supinated seated cable rows"],
     "kneeling supinated cable rows": ["supinated kneeling cable rows"],
     "knee on bench db r delt rows": ["r delt knee on bench rows"],
 
@@ -50,14 +51,14 @@ EXERCISE_MAPPING = {
     # Triceps
     "rope triceps pushdowns": ["rope pushdowns"],
     "flat bar triceps pushdowns": ["flat bar pushdowns", "straight bar pushdowns", "straight bar cable pushdowns", "flat bar cable pushdowns"],
-    "standing flat bar triceps extensions": ["standing overhead tricep cable extensions"],
+    "standing flat bar triceps extensions": ["straight bar cable triceps extensions", "standing overhead tricep cable extensions"],
     "seated flat bar triceps extensions": [],
     "v bar pushdowns": [],
     "lean back one arm cable triceps pushdowns": ["lean back cable tricep pushdowns"],
-    "standing rope triceps extensions": ["rope cable tricep extensions"],
+    "standing rope triceps extensions": ["rope cable tricep extensions", "upright overhead rope cable extensions", "rope overhead tricep extensions"],
     "seated rope triceps extensions": [],
     "one arm cable pushdowns": [],
-    "single arm cable triceps extensions": ["single arm cable extensions"],
+    "one arm cable triceps extensions": ["single arm cable extensions"],
     "one arm db overhead triceps extensions": ["one arm db triceps overhead extensions", "one arm db overhead extensions", "one arm overhead db extensions"],
     "db skull crushers": ["skull crushers"],
     "triceps press machine": ["tricpes press machine"],
@@ -112,7 +113,12 @@ EXERCISE_MAPPING = {
     "bar face pulls": ["face pulls"],
     "rope face pulls": [],
 
+    # Calves
+    "calf raises": ["2 leg calf raises"],
+    "one leg calf raises": ["one legged calf raises"],
+
     # Misc
+    "hammy heel slides": [],
     "db kickbacks": [],
     "hip adduction machine": ["sus machine in"],
 }

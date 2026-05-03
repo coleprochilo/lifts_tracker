@@ -162,13 +162,21 @@ Order of checks:
 
 ### Split Days
 - Stored in `split_days` table so new values persist across runs
-- Default values: `S/L`, `C/T`, `B/B`
+- Default values: `S/L`, `C/T`, `B/B`, `misc`
+- `misc` added for workouts that don't fit a regular split (e.g. random squat/bench day)
 - Managed via "Manage split days" main menu option (separate from session creation)
 - Prompted when starting a new session, validated against DB values
 
 ---
 
 ## CLI Flow
+
+### Login Screen
+- Options: `create`, `login`, `list`
+- `list` prints all registered usernames alphabetically and loops back to prompt
+- `create` and `login` proceed as before
+- Loops until a valid option is entered
+- Duplicate username check handled in `User.register()` — exits if username exists
 
 ### Main Menu
 1. Start new workout session
@@ -240,12 +248,26 @@ All numeric inputs loop until valid:
 - Column offsets: 0, 9, 18, 27 (add 9 per new month)
 - Identifies lifting days by split day keyword in exercise column + valid intensity in weight column
 - Skips cardio, circuit, rest days
+- Skips sessions that already exist (matched by user, date, split day) — safe to re-run
+- Skips exercise instances that already exist in a session (matched by exercise_id, workout_index)
 - Multi-set weights/reps stored as comma-separated strings e.g. `"120, 127.5"`
+- Bodyweight exercises use `bw` in the CSV — converted to `0` during import
 - Rest time is repeated for all sets if only one value given
 - Maps all data to user `cole prochilo`
 - Uses lazy session creation (same as app)
 - `resolve_exercise()` checks primary name then aliases — warns if name not found in mapping
-- Re-runnable: delete `lifts_tracker.db`, register user, run script
+- Re-runnable safely: only new sessions and instances will be added
+- Unmatched exercise names prompt interactively: shows all exercises, asks `[n] new exercise  [a] add as alias`
+- `[n]`: prompts for primary name — if primary differs from unmatched name, unmatched name is auto-saved as alias
+- `[a]`: prompts for primary name to map to, saves unmatched name as alias to that primary
+- Exercises added via prompt are added to DB only — update `exercise_mapping.py` manually to persist across DB resets
+- `resolve_exercise()` no longer auto-creates unknown exercises
+
+## Future Automation (TODO)
+- Schedule `import_csv.py` to run automatically on a weekly basis using macOS `cron` or `launchd`
+- Use `openpyxl` to read the xlsx directly so manual CSV export is not needed
+- This would make the spreadsheet the source of truth and auto-sync to the DB weekly
+- Manual entry at the gym still works alongside this for real-time logging
 
 ---
 
@@ -266,3 +288,11 @@ All numeric inputs loop until valid:
 - No way to delete a session or exercise from the CLI yet
 - No way to view all sessions (only by date)
 - CSV import `MONTH_OFFSETS` needs to be updated manually as new months are added to the spreadsheet
+
+## Tab Completion
+- Implemented using Python's built-in `readline` module (macOS/Linux only)
+- `_get_exercise_completer()` loads all primary names from DB and returns a completer function
+- `_input_with_exercise_completion()` sets the completer, prompts for input, then clears the completer
+- Applied to exercise name prompt in `prompt_log_exercise` and `prompt_view_history`
+- Completes against primary names only (not aliases)
+- Tab cycles through matches, works by prefix matching

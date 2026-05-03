@@ -20,9 +20,9 @@ def parse_date(raw):
 
 
 def parse_sets(weights_raw, reps_raw, rest_raw):
-    weights = [w.strip() for w in weights_raw.split(",") if w.strip()]
-    reps = [r.strip() for r in reps_raw.split(",") if r.strip()]
-    rest_parts = [r.strip() for r in rest_raw.split(",") if r.strip()] if rest_raw.strip() else []
+    weights = [w.strip().lower().replace("bw", "0") for w in weights_raw.split(",") if w.strip()]
+    reps = [r.strip().lower().replace("bw", "0") for r in reps_raw.split(",") if r.strip()]
+    rest_parts = [r.strip() for r in rest_raw.split(",") if r.strip() and r.strip().upper() != "N/A"] if rest_raw.strip() else []
 
     if not weights or not reps or len(weights) != len(reps):
         return None
@@ -59,18 +59,40 @@ def get_user_id(conn):
 
 def resolve_exercise(conn, name):
     name = name.lower().strip()
-    # check primary name
     row = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (name,)).fetchone()
     if row:
         return row[0]
-    # check aliases
     row = conn.execute("SELECT exercise_id FROM exercise_aliases WHERE alias = ?", (name,)).fetchone()
     if row:
         return row[0]
-    # not found — create as new primary (shouldn't happen if mapping is complete)
-    print(f"Warning: '{name}' not found in mapping, creating as new exercise.")
-    conn.execute("INSERT INTO exercises (primary_name) VALUES (?)", (name,))
-    return conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (name,)).fetchone()[0]
+
+    # not found — prompt user
+    all_exercises = conn.execute("SELECT primary_name FROM exercises ORDER BY primary_name").fetchall()
+    print(f"\n'{name}' not found. All exercises:")
+    for ex in all_exercises:
+        print(f"  {ex[0]}")
+
+    choice = input("\n[n] new exercise  [a] add as alias: ").strip().lower()
+    if choice == "a":
+        primary = input("Primary name to alias to: ").strip().lower()
+        row = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (primary,)).fetchone()
+        if not row:
+            print(f"'{primary}' not found, creating '{name}' as new primary instead.")
+            conn.execute("INSERT INTO exercises (primary_name) VALUES (?)", (name,))
+            return conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (name,)).fetchone()[0]
+        conn.execute("INSERT INTO exercise_aliases (exercise_id, alias) VALUES (?, ?)", (row[0], name))
+        print(f"Alias '{name}' added to primary '{primary}'.")
+        return row[0]
+    else:
+        primary = input("Primary name for new exercise: ").strip().lower()
+        conn.execute("INSERT INTO exercises (primary_name) VALUES (?)", (primary,))
+        exercise_id = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (primary,)).fetchone()[0]
+        if primary != name:
+            conn.execute("INSERT INTO exercise_aliases (exercise_id, alias) VALUES (?, ?)", (exercise_id, name))
+            print(f"New primary exercise added: '{primary}'. '{name}' saved as alias.")
+        else:
+            print(f"New primary exercise added: '{primary}'.")
+        return exercise_id
 
 
 def import_csv():
@@ -138,16 +160,30 @@ def import_csv():
             with get_conn() as conn:
                 # lazily create session
                 if workout_id is None:
-                    conn.execute(
-                        "INSERT INTO workout_sessions (user_id, date, split_day) VALUES (?, ?, ?)",
+                    existing_session = conn.execute(
+                        "SELECT workout_id FROM workout_sessions WHERE user_id = ? AND date = ? AND split_day = ?",
                         (user_id, current_date, current_split)
-                    )
-                    workout_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
-                    sessions_imported += 1
+                    ).fetchone()
+                    if existing_session:
+                        workout_id = existing_session[0]
+                    else:
+                        conn.execute(
+                            "INSERT INTO workout_sessions (user_id, date, split_day) VALUES (?, ?, ?)",
+                            (user_id, current_date, current_split)
+                        )
+                        workout_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+                        sessions_imported += 1
 
                 exercise_id = resolve_exercise(conn, exercise_cell)
                 workout_index += 1
-                notes = notes_cell if notes_cell else None
+                notes = None
+
+                existing_instance = conn.execute("""
+                    SELECT ei.instance_id FROM exercise_instances ei
+                    WHERE ei.workout_id = ? AND ei.exercise_id = ? AND ei.workout_index = ?
+                """, (workout_id, exercise_id, workout_index)).fetchone()
+                if existing_instance:
+                    continue
 
                 conn.execute(
                     "INSERT INTO exercise_instances (workout_id, exercise_id, entered_name, intensity, workout_index, notes) VALUES (?, ?, ?, ?, ?, ?)",
