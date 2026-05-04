@@ -50,6 +50,7 @@ last time and improve each session. Eventually will be expanded to a mobile app.
 ### exercises (GLOBAL — shared across all users)
 - `exercise_id` INTEGER PK AUTOINCREMENT
 - `primary_name` TEXT UNIQUE
+- `muscle_group` TEXT — one of `legs`, `back`, `chest`, `shoulders`, `biceps`, `triceps`
 
 ### exercise_aliases
 - `alias_id` INTEGER PK AUTOINCREMENT
@@ -202,7 +203,9 @@ q. Quit
 - Loops back to summary after re-entry
 
 ### View Exercise History
-- Prompts exercise name (checks primary name then aliases)
+- Shows numbered muscle group list, user picks by number or name, or types an exercise name directly
+- If muscle group entered (by number or name) → lists all exercises in that group numbered, user picks one
+- If exercise name entered directly → resolves via primary name then aliases as before
 - Always displays primary name in the header, even if searched by alias
 - Optional intensity filter (validated against VALID_INTENSITIES)
 - Shows all instances ordered by date ASC
@@ -243,7 +246,8 @@ All numeric inputs loop until valid:
 ---
 
 ## Exercise Mapping (`exercise_mapping.py`)
-- Contains `EXERCISE_MAPPING` dict: primary name → list of aliases
+- Contains `EXERCISE_MAPPING` dict: primary name → `{"muscle_group": "...", "aliases": [...]}`
+- `VALID_MUSCLE_GROUPS` tuple exported from here: `("legs", "back", "chest", "shoulders", "biceps", "triceps")`
 - Seeded into `exercises` and `exercise_aliases` tables on every `init_db()` call
 - This means wiping and re-importing always starts with the correct mapping
 - Once in prod, mapping lives in DB permanently — this file is only needed for testing resets
@@ -267,7 +271,7 @@ All numeric inputs loop until valid:
 - `resolve_exercise()` checks primary name then aliases — warns if name not found in mapping
 - Re-runnable safely: only new sessions and instances will be added
 - Unmatched exercise names prompt interactively: shows all exercises, asks `[n] new exercise  [a] add as alias`
-- `[n]`: prompts for primary name — if primary differs from unmatched name, unmatched name is auto-saved as alias
+- `[n]`: prompts for primary name and muscle group — if primary differs from unmatched name, unmatched name is auto-saved as alias
 - `[a]`: prompts for primary name to map to, saves unmatched name as alias to that primary
 - Exercises added via prompt are added to DB only — update `exercise_mapping.py` manually to persist across DB resets
 - `resolve_exercise()` no longer auto-creates unknown exercises

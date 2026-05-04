@@ -7,6 +7,7 @@ import bcrypt
 from datetime import date
 from dateutil import parser as dateparser
 from db import get_conn, init_db
+from exercise_mapping import VALID_MUSCLE_GROUPS
 
 
 def _get_exercise_completer():
@@ -238,7 +239,12 @@ class User:
                     return row[0]
                 print(f"'{existing}' not found, creating new exercise.")
             primary = input("Enter primary name for new exercise: ").strip().lower()
-            conn.execute("INSERT INTO exercises (primary_name) VALUES (?)", (primary,))
+            while True:
+                muscle_group = input(f"Muscle group ({'/'.join(VALID_MUSCLE_GROUPS)}): ").strip().lower()
+                if muscle_group in VALID_MUSCLE_GROUPS:
+                    break
+                print(f"Invalid, choose from {', '.join(VALID_MUSCLE_GROUPS)}")
+            conn.execute("INSERT INTO exercises (primary_name, muscle_group) VALUES (?, ?)", (primary, muscle_group))
             exercise_id = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (primary,)).fetchone()[0]
             aliases = [a.strip().lower() for a in input("Enter aliases (comma separated, or leave blank): ").split(",") if a.strip()]
             for alias in [name] + aliases:
@@ -482,7 +488,37 @@ def prompt_view_history(user):
     Returns:
         None. Prints exercise history directly to stdout.
     """
-    name = _input_with_exercise_completion("Exercise name: ").lower()
+    print("\nSelect a muscle group or enter an exercise name directly:")
+    for i, mg in enumerate(VALID_MUSCLE_GROUPS, 1):
+        print(f"  {i}. {mg}")
+    entry = input("\n> ").strip().lower()
+    if entry.isdigit() and 1 <= int(entry) <= len(VALID_MUSCLE_GROUPS):
+        entry = VALID_MUSCLE_GROUPS[int(entry) - 1]
+
+    if entry in VALID_MUSCLE_GROUPS:
+        with get_conn() as conn:
+            exercises = conn.execute(
+                "SELECT primary_name FROM exercises WHERE muscle_group = ? ORDER BY primary_name",
+                (entry,)
+            ).fetchall()
+        if not exercises:
+            print(f"No exercises found for '{entry}'.")
+            return
+        print(f"\n{entry} exercises:")
+        for i, (ex,) in enumerate(exercises, 1):
+            print(f"  {i}. {ex}")
+        while True:
+            try:
+                choice = int(input("\nSelect exercise: ").strip())
+                if 1 <= choice <= len(exercises):
+                    name = exercises[choice - 1][0]
+                    break
+                print(f"Enter a number between 1 and {len(exercises)}.")
+            except ValueError:
+                print("Must enter a numeric value.")
+    else:
+        name = entry
+
     with get_conn() as conn:
         row = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (name,)).fetchone()
         if not row:

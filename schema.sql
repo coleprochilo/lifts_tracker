@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS exercises (
     exercise_id   INTEGER PRIMARY KEY AUTOINCREMENT,
-    primary_name  TEXT NOT NULL UNIQUE
+    primary_name  TEXT NOT NULL UNIQUE,
+    muscle_group  TEXT
 );
 
 CREATE TABLE IF NOT EXISTS exercise_aliases (

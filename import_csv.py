@@ -1,6 +1,7 @@
 import csv
 from datetime import datetime
 from db import get_conn, init_db
+from exercise_mapping import EXERCISE_MAPPING, VALID_MUSCLE_GROUPS
 
 CSV_PATH = "Gym Chart.csv"
 USERNAME = "cole prochilo"
@@ -50,6 +51,14 @@ def parse_sets(weights_raw, reps_raw, rest_raw):
     return sets
 
 
+def _prompt_muscle_group():
+    while True:
+        mg = input(f"Muscle group ({'/'.join(VALID_MUSCLE_GROUPS)}): ").strip().lower()
+        if mg in VALID_MUSCLE_GROUPS:
+            return mg
+        print(f"Invalid, choose from {', '.join(VALID_MUSCLE_GROUPS)}")
+
+
 def get_user_id(conn):
     row = conn.execute("SELECT user_id FROM users WHERE username = ?", (USERNAME,)).fetchone()
     if not row:
@@ -78,14 +87,16 @@ def resolve_exercise(conn, name):
         row = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (primary,)).fetchone()
         if not row:
             print(f"'{primary}' not found, creating '{name}' as new primary instead.")
-            conn.execute("INSERT INTO exercises (primary_name) VALUES (?)", (name,))
+            muscle_group = _prompt_muscle_group()
+            conn.execute("INSERT INTO exercises (primary_name, muscle_group) VALUES (?, ?)", (name, muscle_group))
             return conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (name,)).fetchone()[0]
         conn.execute("INSERT INTO exercise_aliases (exercise_id, alias) VALUES (?, ?)", (row[0], name))
         print(f"Alias '{name}' added to primary '{primary}'.")
         return row[0]
     else:
         primary = input("Primary name for new exercise: ").strip().lower()
-        conn.execute("INSERT INTO exercises (primary_name) VALUES (?)", (primary,))
+        muscle_group = _prompt_muscle_group()
+        conn.execute("INSERT INTO exercises (primary_name, muscle_group) VALUES (?, ?)", (primary, muscle_group))
         exercise_id = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (primary,)).fetchone()[0]
         if primary != name:
             conn.execute("INSERT INTO exercise_aliases (exercise_id, alias) VALUES (?, ?)", (exercise_id, name))

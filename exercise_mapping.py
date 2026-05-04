@@ -1,124 +1,108 @@
-# Maps primary exercise names to their aliases.
+# Maps primary exercise names to their aliases and muscle group.
 # Used to seed the exercises and exercise_aliases tables on DB init.
 # All names are lowercase.
+# Structure: "primary_name": {"muscle_group": "...", "aliases": [...]}
+
+VALID_MUSCLE_GROUPS = ("legs", "back", "chest", "shoulders", "biceps", "triceps")
 
 EXERCISE_MAPPING = {
-    # Squat
-    "squat": ["squat (b)", "heavy squat", "heavy squat (b)", "light squat", "light squat (b)", "light squat (nb)"],
-    "bike squats": [],
-    "cossack squats": [],
-    "db sumo squats": [],
-    "baby leg press": [],
-    "one leg baby leg press": [],
-
-    # Bench
-    "bench": ["bench (p)", "heavy bench", "heavy bench (p)", "light bench", "light bench (p)", "llight bench (p)"],
-
-    # Rows
-    "bb rows": [],
-    "supinated bb rows": ["supinted bb rows"],
-    "incline db rows": [],
-    "one arm db rows": ["one arm dumbell rows"],
-    "kneeling one arm cable rows": ["kneeling 1 arm cable rows", "one arm kneeling cable rows"],
-    "seated neutral cable rows": ["neutral seated cable rows", "neutral seated cabler rows"],
-    "seated pronated cable rows": [],
-    "seated neutral one arm cable rows": ["d grip seated cable rows"],
-    "seated supinated one arm cable rows": [],
-    "seated supinated cable rows": ["supinated cable rows", "supinated seated cable rows"],
-    "kneeling supinated cable rows": ["supinated kneeling cable rows"],
-    "knee on bench db r delt rows": ["r delt knee on bench rows"],
-
-    # Lat pulldowns
-    "lat pulldowns": [],
-    "neutral lat pulldowns": [],
-    "wide grip lat pulldowns": [],
-    "two grip lat pulldowns": [],
-    "supinated lat pulldowns": ["supinated lat pulldows"],
-
-    # Curls
-    "bayesian curls": ["standing bayesian curls"],
-    "bb curls": [],
-    "db curls": [],
-    "db hammer curls": ["hammer curls"],
-    "incline db curls": ["incline curls", "incline bicep curls"],
-    "one arm db preacher curls": ["db one arm preacher curls", "one db preacher curls"],
-    "ez bar preacher curls": ["ez preacher curls"],
-    "spider curls": [],
-    "rope cable curls": ["rope curls"],
-    "flat bar cable curls": ["straight bar cable curls"],
-    "one arm cable curls": ["single arm cable curls"],
-
-    # Triceps
-    "rope triceps pushdowns": ["rope pushdowns"],
-    "flat bar triceps pushdowns": ["flat bar pushdowns", "straight bar pushdowns", "straight bar cable pushdowns", "flat bar cable pushdowns"],
-    "standing flat bar triceps extensions": ["straight bar cable triceps extensions", "standing overhead tricep cable extensions"],
-    "seated flat bar triceps extensions": [],
-    "v bar pushdowns": [],
-    "lean back one arm cable triceps pushdowns": ["lean back cable tricep pushdowns"],
-    "standing rope triceps extensions": ["rope cable tricep extensions", "upright overhead rope cable extensions", "rope overhead tricep extensions"],
-    "seated rope triceps extensions": [],
-    "one arm cable pushdowns": [],
-    "one arm cable triceps extensions": ["single arm cable extensions"],
-    "one arm db overhead triceps extensions": ["one arm db triceps overhead extensions", "one arm db overhead extensions", "one arm overhead db extensions"],
-    "db skull crushers": ["skull crushers"],
-    "triceps press machine": ["tricpes press machine"],
-
-    # Lateral raises
-    "cable lateral raises": [],
-    "db lateral raises": ["db laterl raises"],
-    "lean in db lateral raises": ["leaning db lateral raises", "leaning db lateral flys", "leaning lateral db raises", "leaning lateral raises"],
-    "lean out db lateral raises": [],
-    "incline db lateral raises": ["incline leaning lateral raises", "lincline db lateral raises"],
-
-    # Rear delts
-    "db bent over r delt flys": ["bent over r delt flys", "bent over db flys"],
-    "bent over cable r delt flys": ["bent over r delt cable flys", "cable r delt flys", "r delt cable flys"],
-    "seated bent over r delt flys": ["seated db r delt flys"],
-    "mr incredible": [],
-    "reverse mr incredible": [],
+    # Legs
+    "squat":                                {"muscle_group": "legs",      "aliases": ["squat (b)", "heavy squat", "heavy squat (b)", "light squat", "light squat (b)", "light squat (nb)"]},
+    "bike squats":                          {"muscle_group": "legs",      "aliases": []},
+    "cossack squats":                       {"muscle_group": "legs",      "aliases": []},
+    "db sumo squats":                       {"muscle_group": "legs",      "aliases": []},
+    "baby leg press":                       {"muscle_group": "legs",      "aliases": []},
+    "one leg baby leg press":               {"muscle_group": "legs",      "aliases": []},
+    "bb rdls":                              {"muscle_group": "legs",      "aliases": []},
+    "db rdls":                              {"muscle_group": "legs",      "aliases": ["db rdls (b) (2 dbs)"]},
+    "hammy curls machine":                  {"muscle_group": "legs",      "aliases": ["hammy curls"]},
+    "leg extensions machine":               {"muscle_group": "legs",      "aliases": ["leg extensions"]},
+    "walking db lunges":                    {"muscle_group": "legs",      "aliases": []},
+    "standing db lunges":                   {"muscle_group": "legs",      "aliases": ["db lunges"]},
+    "db bulgarian split squats":            {"muscle_group": "legs",      "aliases": ["bulgarian split squats (2 dbs)"]},
+    "hammy heel slides":                    {"muscle_group": "legs",      "aliases": []},
+    "hip adduction machine":                {"muscle_group": "legs",      "aliases": ["sus machine in"]},
+    "calf raises":                          {"muscle_group": "legs",      "aliases": ["2 leg calf raises"]},
+    "one leg calf raises":                  {"muscle_group": "legs",      "aliases": ["one legged calf raises"]},
 
     # Chest
-    "incline db press": ["incline db bench"],
-    "incline db flys": ["incline db fliys"],
-    "flat db flys": [],
-    "pec fly machine": ["chest fly machine"],
-    "chest press machine": [],
-    "incline smith machine press": ["smith machine incline press"],
-    "standing cable chest press": [],
-    "standing one arm db chest flys": ["standing single arm db fly"],
-    "cable upper pec flys": ["upper pec cable flys"],
-    "seated cable upper pec flys": ["seated upper pec cable flys"],
+    "bench":                                {"muscle_group": "chest",     "aliases": ["bench (p)", "heavy bench", "heavy bench (p)", "light bench", "light bench (p)", "llight bench (p)"]},
+    "incline db press":                     {"muscle_group": "chest",     "aliases": ["incline db bench"]},
+    "incline db flys":                      {"muscle_group": "chest",     "aliases": ["incline db fliys"]},
+    "flat db flys":                         {"muscle_group": "chest",     "aliases": []},
+    "pec fly machine":                      {"muscle_group": "chest",     "aliases": ["chest fly machine"]},
+    "chest press machine":                  {"muscle_group": "chest",     "aliases": []},
+    "incline smith machine press":          {"muscle_group": "chest",     "aliases": ["smith machine incline press"]},
+    "standing cable chest press":           {"muscle_group": "chest",     "aliases": []},
+    "standing one arm db chest flys":       {"muscle_group": "chest",     "aliases": ["standing single arm db fly"]},
+    "cable upper pec flys":                 {"muscle_group": "chest",     "aliases": ["upper pec cable flys"]},
+    "seated cable upper pec flys":          {"muscle_group": "chest",     "aliases": ["seated upper pec cable flys"]},
+    "mr incredible":                        {"muscle_group": "chest",     "aliases": []},
 
-    # Shoulder press
-    "standing db overhead press": ["db overhead press"],
-    "seated db overhead press": ["db seated overhead press", "seated db shoulder press"],
-    "upright rows": [],
+    # Back
+    "bb rows":                              {"muscle_group": "back",      "aliases": []},
+    "supinated bb rows":                    {"muscle_group": "back",      "aliases": ["supinted bb rows"]},
+    "incline db rows":                      {"muscle_group": "back",      "aliases": []},
+    "one arm db rows":                      {"muscle_group": "back",      "aliases": ["one arm dumbell rows"]},
+    "kneeling one arm cable rows":          {"muscle_group": "back",      "aliases": ["kneeling 1 arm cable rows", "one arm kneeling cable rows"]},
+    "seated neutral cable rows":            {"muscle_group": "back",      "aliases": ["neutral seated cable rows", "neutral seated cabler rows"]},
+    "seated pronated cable rows":           {"muscle_group": "back",      "aliases": []},
+    "seated neutral one arm cable rows":    {"muscle_group": "back",      "aliases": ["d grip seated cable rows"]},
+    "seated supinated one arm cable rows":  {"muscle_group": "back",      "aliases": []},
+    "seated supinated cable rows":          {"muscle_group": "back",      "aliases": ["supinated cable rows", "supinated seated cable rows"]},
+    "kneeling supinated cable rows":        {"muscle_group": "back",      "aliases": ["supinated kneeling cable rows"]},
+    "lat pulldowns":                        {"muscle_group": "back",      "aliases": []},
+    "neutral lat pulldowns":                {"muscle_group": "back",      "aliases": []},
+    "wide grip lat pulldowns":              {"muscle_group": "back",      "aliases": []},
+    "two grip lat pulldowns":               {"muscle_group": "back",      "aliases": []},
+    "supinated lat pulldowns":              {"muscle_group": "back",      "aliases": ["supinated lat pulldows"]},
+    "flat bar lat pullovers":               {"muscle_group": "back",      "aliases": ["flat bar cable pullovers"]},
+    "rope lat pullovers":                   {"muscle_group": "back",      "aliases": ["rope pullovers"]},
 
-    # Pullovers
-    "flat bar lat pullovers": ["flat bar cable pullovers"],
-    "rope lat pullovers": ["rope pullovers"],
+    # Shoulders
+    "cable lateral raises":                 {"muscle_group": "shoulders", "aliases": []},
+    "db lateral raises":                    {"muscle_group": "shoulders", "aliases": ["db laterl raises"]},
+    "lean in db lateral raises":            {"muscle_group": "shoulders", "aliases": ["leaning db lateral raises", "leaning db lateral flys", "leaning lateral db raises", "leaning lateral raises"]},
+    "lean out db lateral raises":           {"muscle_group": "shoulders", "aliases": []},
+    "incline db lateral raises":            {"muscle_group": "shoulders", "aliases": ["incline leaning lateral raises", "lincline db lateral raises"]},
+    "bent over db r delt flys":             {"muscle_group": "shoulders", "aliases": ["bent over r delt flys", "bent over db flys", "db bent over r delt flys"]},
+    "bent over cable r delt flys":          {"muscle_group": "shoulders", "aliases": ["bent over r delt cable flys", "cable r delt flys", "r delt cable flys"]},
+    "seated bent over r delt flys":         {"muscle_group": "shoulders", "aliases": ["seated db r delt flys"]},
+    "reverse mr incredible":                {"muscle_group": "shoulders", "aliases": ["reverse cable crossover"]},
+    "standing db overhead press":           {"muscle_group": "shoulders", "aliases": ["db overhead press"]},
+    "seated db overhead press":             {"muscle_group": "shoulders", "aliases": ["db seated overhead press", "seated db shoulder press"]},
+    "upright rows":                         {"muscle_group": "shoulders", "aliases": []},
+    "bar face pulls":                       {"muscle_group": "shoulders", "aliases": ["face pulls"]},
+    "rope face pulls":                      {"muscle_group": "shoulders", "aliases": []},
+    "knee on bench db r delt rows":         {"muscle_group": "shoulders", "aliases": ["r delt knee on bench rows"]},
 
-    # RDLs
-    "bb rdls": [],
-    "db rdls": ["db rdls (b) (2 dbs)"],
+    # Biceps
+    "bayesian curls":                       {"muscle_group": "biceps",    "aliases": ["standing bayesian curls"]},
+    "bb curls":                             {"muscle_group": "biceps",    "aliases": []},
+    "db curls":                             {"muscle_group": "biceps",    "aliases": []},
+    "db hammer curls":                      {"muscle_group": "biceps",    "aliases": ["hammer curls"]},
+    "incline db curls":                     {"muscle_group": "biceps",    "aliases": ["incline curls", "incline bicep curls"]},
+    "one arm db preacher curls":            {"muscle_group": "biceps",    "aliases": ["db one arm preacher curls", "one db preacher curls"]},
+    "ez bar preacher curls":                {"muscle_group": "biceps",    "aliases": ["ez preacher curls"]},
+    "spider curls":                         {"muscle_group": "biceps",    "aliases": []},
+    "rope cable curls":                     {"muscle_group": "biceps",    "aliases": ["rope curls"]},
+    "flat bar cable curls":                 {"muscle_group": "biceps",    "aliases": ["straight bar cable curls"]},
+    "one arm cable curls":                  {"muscle_group": "biceps",    "aliases": ["single arm cable curls"]},
 
-    # Legs
-    "hammy curls machine": ["hammy curls"],
-    "leg extensions machine": ["leg extensions"],
-    "walking db lunges": [],
-    "standing db lunges": ["db lunges"],
-    "db bulgarian split squats": ["bulgarian split squats (2 dbs)"],
-
-    # Face pulls
-    "bar face pulls": ["face pulls"],
-    "rope face pulls": [],
-
-    # Calves
-    "calf raises": ["2 leg calf raises"],
-    "one leg calf raises": ["one legged calf raises"],
-
-    # Misc
-    "hammy heel slides": [],
-    "db kickbacks": [],
-    "hip adduction machine": ["sus machine in"],
+    # Triceps
+    "rope triceps pushdowns":               {"muscle_group": "triceps",   "aliases": ["rope pushdowns"]},
+    "flat bar triceps pushdowns":           {"muscle_group": "triceps",   "aliases": ["flat bar pushdowns", "straight bar pushdowns", "straight bar cable pushdowns", "flat bar cable pushdowns"]},
+    "standing flat bar triceps extensions": {"muscle_group": "triceps",   "aliases": ["straight bar cable triceps extensions", "standing overhead tricep cable extensions"]},
+    "seated flat bar triceps extensions":   {"muscle_group": "triceps",   "aliases": []},
+    "v bar pushdowns":                      {"muscle_group": "triceps",   "aliases": []},
+    "lean back one arm cable triceps pushdowns": {"muscle_group": "triceps", "aliases": ["lean back cable tricep pushdowns"]},
+    "standing rope triceps extensions":     {"muscle_group": "triceps",   "aliases": ["rope cable tricep extensions", "upright overhead rope cable extensions", "rope overhead tricep extensions"]},
+    "seated rope triceps extensions":       {"muscle_group": "triceps",   "aliases": []},
+    "one arm cable pushdowns":              {"muscle_group": "triceps",   "aliases": []},
+    "one arm cable triceps extensions":     {"muscle_group": "triceps",   "aliases": ["single arm cable extensions"]},
+    "one arm db overhead triceps extensions": {"muscle_group": "triceps", "aliases": ["one arm db triceps overhead extensions", "one arm db overhead extensions", "one arm overhead db extensions"]},
+    "db skull crushers":                    {"muscle_group": "triceps",   "aliases": ["skull crushers"]},
+    "triceps press machine":                {"muscle_group": "triceps",   "aliases": ["tricpes press machine"]},
+    "tricep pushups":                       {"muscle_group": "triceps",   "aliases": []},
+    "db kickbacks":                         {"muscle_group": "triceps",   "aliases": []},
 }
