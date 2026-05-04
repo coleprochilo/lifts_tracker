@@ -23,6 +23,7 @@ last time and improve each session. Eventually will be expanded to a mobile app.
 - SQLite via `sqlite3` (standard library)
 - `bcrypt` for password hashing
 - `python-dateutil` for flexible date parsing
+- `matplotlib` for data visualization
 - No ORM — raw SQL queries
 
 ---
@@ -31,6 +32,7 @@ last time and improve each session. Eventually will be expanded to a mobile app.
 - `lifts_tracker.py` — main app, all classes and CLI logic
 - `db.py` — DB connection and schema initialization
 - `schema.sql` — SQLite schema
+- `graphs.py` — all graphing logic, called from main app
 - `import_csv.py` — one-time CSV import script for historical data
 - `exercise_mapping.py` — full primary name and alias mapping, seeded into DB on init
 - `primary_and_aliases_mapping.txt` — reference document for exercise naming decisions
@@ -182,8 +184,9 @@ Order of checks:
 ### Main Menu
 1. Start new workout session
 2. View exercise history
-3. View workouts by date
-4. Manage split days
+3. View exercise graph
+4. View workouts by date
+5. Manage split days
 q. Quit
 
 ### Starting a Session
@@ -211,6 +214,12 @@ q. Quit
 - Shows all instances ordered by date ASC
 - Format: `date | #index | intensity | sets | rest: values | notes`
 - Rest omitted from output if no rest values stored for that instance
+
+### View Exercise Graph
+- Same muscle group browse flow as view history
+- Calls `show_exercise_graphs(exercise_id, exercise_name, user_id)` from `graphs.py`
+- Pops up a matplotlib window with 3 graphs side by side (2 for bodyweight exercises)
+- Window blocks until closed, then returns to main menu
 
 ### View Workouts by Date
 - If 1 session: shows full session summary directly
@@ -276,6 +285,18 @@ All numeric inputs loop until valid:
 - Exercises added via prompt are added to DB only — update `exercise_mapping.py` manually to persist across DB resets
 - `resolve_exercise()` no longer auto-creates unknown exercises
 
+## Graphs (`graphs.py`)
+- 3 graphs per exercise displayed side by side in a matplotlib popup window
+- **Graph 1 — Avg Weight over Time**: all intensities as separate colored lines, y-axis is avg weight per instance. For bw exercises y-axis is avg reps, weighted instances annotated with `+Xlbs`
+- **Graph 2 — e1RM by Intensity**: normal + heavy only, two colored lines. Light excluded as it's a deload intensity
+- **Graph 3 — Combined e1RM**: normal + heavy combined into one line. Skipped for bw exercises
+- **e1RM formula**: Epley — `weight × (1 + reps / 30)`. Calculated per set then averaged across sets per instance
+- **Bodyweight detection**: majority rules — if more than half of instances have weight = 0, treated as bw exercise
+- **Mixed weight/bw**: bw exercises always use reps as y-axis, weighted instances annotated with avg weight
+- **X-axis**: true calendar dates with gaps (shows training frequency)
+- Colors: light = skyblue, normal = steelblue, heavy = darkblue
+- TODO: add download/save button to graph window
+
 ## Future Automation (TODO)
 - Schedule `import_csv.py` to run automatically on a weekly basis using macOS `cron` or `launchd`
 - Use `openpyxl` to read the xlsx directly so manual CSV export is not needed
@@ -285,7 +306,7 @@ All numeric inputs loop until valid:
 ---
 
 ## Future Plans
-- Data visualization / graphing (matplotlib/pandas) — data structure already supports this
+- Data visualization ✅ — implemented in `graphs.py`
 - Mobile app via React Native frontend + Flask/FastAPI Python backend
 - Hosting options: AWS EC2 + SQLite (cheap, ~$8-10/month after free tier) or home server (Raspberry Pi)
 - Add cardio tracking (date, distance, duration, pace, elevation)
@@ -302,6 +323,7 @@ All numeric inputs loop until valid:
 - No way to view all sessions (only by date)
 - No way to edit instances from past sessions (only editable during active session confirm flow) — TODO
 - CSV import `MONTH_OFFSETS` needs to be updated manually as new months are added to the spreadsheet
+- **ACTIVE BUG**: after closing a graph window and answering `n` to "View another graph?", the main menu re-triggers option 3 (view graph) due to a stray newline being sent to stdin when the matplotlib TkAgg window closes. Tried: termios flush, double flush with sleep, flush before/after prompt. Not yet resolved.
 
 ## Tab Completion
 - Implemented using `gnureadline` (statically linked GNU readline, more reliable on macOS)

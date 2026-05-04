@@ -8,6 +8,7 @@ from datetime import date
 from dateutil import parser as dateparser
 from db import get_conn, init_db
 from exercise_mapping import VALID_MUSCLE_GROUPS
+from graphs import show_exercise_graphs
 
 
 def _get_exercise_completer():
@@ -477,7 +478,64 @@ def prompt_log_exercise(user, session):
     user.add_exercise_instance(instance, session)
 
 
-def prompt_view_history(user):
+def prompt_view_graph(user):
+    while True:
+        print("\nSelect a muscle group or enter an exercise name directly:")
+        for i, mg in enumerate(VALID_MUSCLE_GROUPS, 1):
+            print(f"  {i}. {mg}")
+        entry = input("\n> ").strip().lower()
+        if entry.isdigit() and 1 <= int(entry) <= len(VALID_MUSCLE_GROUPS):
+            entry = VALID_MUSCLE_GROUPS[int(entry) - 1]
+
+        if entry in VALID_MUSCLE_GROUPS:
+            with get_conn() as conn:
+                exercises = conn.execute(
+                    "SELECT exercise_id, primary_name FROM exercises WHERE muscle_group = ? ORDER BY primary_name",
+                    (entry,)
+                ).fetchall()
+            if not exercises:
+                print(f"No exercises found for '{entry}'.")
+                continue
+            print(f"\n{entry} exercises:")
+            for i, (_, name) in enumerate(exercises, 1):
+                print(f"  {i}. {name}")
+            while True:
+                try:
+                    choice = int(input("\nSelect exercise: ").strip())
+                    if 1 <= choice <= len(exercises):
+                        exercise_id, exercise_name = exercises[choice - 1]
+                        break
+                    print(f"Enter a number between 1 and {len(exercises)}.")
+                except ValueError:
+                    print("Must enter a numeric value.")
+        else:
+            with get_conn() as conn:
+                row = conn.execute("SELECT exercise_id, primary_name FROM exercises WHERE primary_name = ?", (entry,)).fetchone()
+                if not row:
+                    row = conn.execute("""
+                        SELECT e.exercise_id, e.primary_name FROM exercise_aliases ea
+                        JOIN exercises e ON e.exercise_id = ea.exercise_id
+                        WHERE ea.alias = ?
+                    """, (entry,)).fetchone()
+                if not row:
+                    print(f"No exercise found for '{entry}'.")
+                    continue
+                exercise_id, exercise_name = row
+
+        show_exercise_graphs(exercise_id, exercise_name, user.user_id)
+
+        import sys, time, termios
+        time.sleep(0.5)
+        termios.tcflush(sys.stdin, termios.TCIFLUSH)
+        time.sleep(0.1)
+        termios.tcflush(sys.stdin, termios.TCIFLUSH)
+        again = input("\nView another graph? (y/n): ").strip().lower()
+        time.sleep(0.1)
+        termios.tcflush(sys.stdin, termios.TCIFLUSH)
+        if again != "y":
+            break
+
+
     """
     Interactive CLI prompt to view the full history of an exercise for the logged-in user,
     with an optional intensity filter.
@@ -681,7 +739,7 @@ def main_loop(user):
     """
     print(f"\n{'='*50}\n         LIFTS TRACKER - Welcome, {user.username}\n{'='*50}")
     while True:
-        print("\n1. Start new workout session\n2. View exercise history\n3. View workouts by date\n4. Manage split days\nq. Quit")
+        print("\n1. Start new workout session\n2. View exercise history\n3. View exercise graph\n4. View workouts by date\n5. Manage split days\nq. Quit")
         choice = input("\n> ").strip().lower()
         if choice == "1":
             while True:
@@ -716,6 +774,8 @@ def main_loop(user):
         elif choice == "2":
             prompt_view_history(user)
         elif choice == "3":
+            prompt_view_graph(user)
+        elif choice == "4":
             date_input = input("Date: ").strip()
             try:
                 parsed = dateparser.parse(date_input, dayfirst=False).date().isoformat()
@@ -723,7 +783,7 @@ def main_loop(user):
                 print("Couldn't parse that date, try again.")
                 continue
             user.get_workouts_by_date(parsed)
-        elif choice == "4":
+        elif choice == "5":
             manage_split_days()
         elif choice == "q":
             print("See you next time.")
