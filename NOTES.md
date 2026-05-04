@@ -323,7 +323,9 @@ All numeric inputs loop until valid:
 - No way to view all sessions (only by date)
 - No way to edit instances from past sessions (only editable during active session confirm flow) — TODO
 - CSV import `MONTH_OFFSETS` needs to be updated manually as new months are added to the spreadsheet
-- **ACTIVE BUG**: after closing a graph window and answering `n` to "View another graph?", the main menu re-triggers option 3 (view graph) due to a stray newline being sent to stdin when the matplotlib TkAgg window closes. Tried: termios flush, double flush with sleep, flush before/after prompt. Not yet resolved.
+- **ACTIVE BUG**: after closing a graph window and answering `n` to "View another graph?", the main menu re-triggers option 3 (view graph) due to a stray newline being sent to stdin when the matplotlib TkAgg window closes. Tried: termios flush, double flush with sleep, select drain. Not yet resolved.
+- Fixed: `prompt_view_history` was returning `exercise_id` instead of `primary_name` when browsing by muscle group (wrong tuple index)
+- Fixed: duplicate `prompt_view_history` body was left inside `prompt_view_graph` — cleaned up by extracting shared `_browse_muscle_group()` helper used by both functions
 
 ## Tab Completion
 - Implemented using `gnureadline` (statically linked GNU readline, more reliable on macOS)
