@@ -25,6 +25,8 @@ EXERCISE_MAPPING = {
     "hip adduction machine":                {"muscle_group": "legs",      "aliases": ["sus machine in"]},
     "calf raises":                          {"muscle_group": "legs",      "aliases": ["2 leg calf raises"]},
     "one leg calf raises":                  {"muscle_group": "legs",      "aliases": ["one legged calf raises"]},
+    "step ups":                             {"muscle_group": "legs",      "aliases": []},
+    "alternating step ups":                 {"muscle_group": "legs",      "aliases": []},
 
     # Chest
     "bench":                                {"muscle_group": "chest",     "aliases": ["bench (p)", "heavy bench", "heavy bench (p)", "light bench", "light bench (p)", "llight bench (p)"]},
@@ -76,6 +78,7 @@ EXERCISE_MAPPING = {
     "bar face pulls":                       {"muscle_group": "shoulders", "aliases": ["face pulls"]},
     "rope face pulls":                      {"muscle_group": "shoulders", "aliases": []},
     "knee on bench db r delt rows":         {"muscle_group": "shoulders", "aliases": ["r delt knee on bench rows"]},
+    "one arm reverse mr incredible":        {"muscle_group": "shoulders", "aliases": []},
 
     # Biceps
     "bayesian curls":                       {"muscle_group": "biceps",    "aliases": ["standing bayesian curls"]},

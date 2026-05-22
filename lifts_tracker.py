@@ -37,7 +37,7 @@ def _browse_muscle_group():
     print("\nSelect a muscle group or enter an exercise name directly:")
     for i, mg in enumerate(VALID_MUSCLE_GROUPS, 1):
         print(f"  {i}. {mg}")
-    entry = input("\n> ").strip().lower()
+    entry = input("\n  or type an exercise name: ").strip().lower()
     if entry.isdigit() and 1 <= int(entry) <= len(VALID_MUSCLE_GROUPS):
         entry = VALID_MUSCLE_GROUPS[int(entry) - 1]
 
@@ -70,8 +70,22 @@ def _browse_muscle_group():
                     JOIN exercises e ON e.exercise_id = ea.exercise_id
                     WHERE ea.alias = ?
                 """, (entry,)).fetchone()
+            if not row:
+                all_exercises = conn.execute("SELECT exercise_id, primary_name FROM exercises").fetchall()
+                all_aliases = conn.execute("SELECT exercise_id, alias FROM exercise_aliases").fetchall()
+                close_match = next((e for e in all_exercises if entry in e[1] or e[1] in entry), None)
+                close_match = close_match or next((a for a in all_aliases if entry in a[1] or a[1] in entry), None)
+                if close_match:
+                    print(f"Did you mean '{close_match[1]}'? (y/n)")
+                    if input().strip().lower() == "y":
+                        row = conn.execute("SELECT exercise_id, primary_name FROM exercises WHERE exercise_id = ?", (close_match[0],)).fetchone()
+                    else:
+                        print(f"No exercise found for '{entry}'.")
+                        return None
+                else:
+                    print(f"No exercise found for '{entry}'.")
+                    return None
         if not row:
-            print(f"No exercise found for '{entry}'.")
             return None
         return row
 

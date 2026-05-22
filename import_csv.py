@@ -5,7 +5,6 @@ from exercise_mapping import EXERCISE_MAPPING, VALID_MUSCLE_GROUPS
 
 CSV_PATH = "Gym Chart.csv"
 USERNAME = "cole prochilo"
-MONTH_OFFSETS = [0, 9, 18, 27]
 VALID_SPLITS = {"B/B Day", "C/T Day", "S/L Day"}
 VALID_INTENSITIES = {"light", "normal", "heavy"}
 
@@ -59,7 +58,13 @@ def _prompt_muscle_group():
         print(f"Invalid, choose from {', '.join(VALID_MUSCLE_GROUPS)}")
 
 
-def get_user_id(conn):
+def get_month_offsets(rows):
+    if not rows:
+        return []
+    header = rows[0]
+    return [i for i, cell in enumerate(header) if cell.strip() == "Date"]
+
+
     row = conn.execute("SELECT user_id FROM users WHERE username = ?", (USERNAME,)).fetchone()
     if not row:
         raise ValueError(f"User '{USERNAME}' not found in DB. Please register first.")
@@ -115,10 +120,15 @@ def import_csv():
     with open(CSV_PATH, newline="", encoding="utf-8-sig") as f:
         rows = list(csv.reader(f))
 
+    month_offsets = get_month_offsets(rows)
+    if not month_offsets:
+        print("No month data found in CSV.")
+        return
+
     sessions_imported = 0
     instances_imported = 0
 
-    for offset in MONTH_OFFSETS:
+    for offset in month_offsets:
         current_date = None
         current_split = None
         current_intensity = None

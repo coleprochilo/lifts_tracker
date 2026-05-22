@@ -267,7 +267,9 @@ All numeric inputs loop until valid:
 ## CSV Import (`import_csv.py`)
 - Imports historical data from `Gym Chart.csv`
 - CSV structure: months side by side, 9 columns per month (8 data + 1 blank separator), up to 12 months
-- Column offsets: 0, 9, 18, 27 (add 9 per new month)
+- Column offsets auto-detected by scanning header row for `Date` columns — no manual updates needed when new months are added
+- Supports any number of months, no 12-month limit
+- Safe for multi-year CSVs — sessions matched by date so repeated month names across years won't collide
 - Identifies lifting days by split day keyword in exercise column + valid intensity in weight column
 - Skips cardio, circuit, rest days
 - Skips sessions that already exist (matched by user, date, split day) — safe to re-run
@@ -322,7 +324,7 @@ All numeric inputs loop until valid:
 - No way to delete a session or exercise from the CLI yet
 - No way to view all sessions (only by date)
 - No way to edit instances from past sessions (only editable during active session confirm flow) — TODO
-- CSV import `MONTH_OFFSETS` needs to be updated manually as new months are added to the spreadsheet
+- CSV import `MONTH_OFFSETS` removed — now auto-detected from header row
 - **ACTIVE BUG**: after closing a graph window and answering `n` to "View another graph?", the main menu re-triggers option 3 (view graph) due to a stray newline being sent to stdin when the matplotlib TkAgg window closes. Tried: termios flush, double flush with sleep, select drain. Not yet resolved.
 - Fixed: `prompt_view_history` was returning `exercise_id` instead of `primary_name` when browsing by muscle group (wrong tuple index)
 - Fixed: duplicate `prompt_view_history` body was left inside `prompt_view_graph` — cleaned up by extracting shared `_browse_muscle_group()` helper used by both functions
