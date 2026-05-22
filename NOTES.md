@@ -209,7 +209,9 @@ q. Quit
 - Shows numbered muscle group list, user picks by number or name, or types an exercise name directly
 - If muscle group entered (by number or name) → lists all exercises in that group numbered, user picks one
 - If exercise name entered directly → resolves via primary name then aliases as before
-- Always displays primary name in the header, even if searched by alias
+- Session summary displays `entered_name` (exact name as typed/imported) for each instance
+- View history header always shows primary name, instance rows show date/intensity/sets/rest/notes (no entered name)
+- `entered_name` is stored on every instance at time of logging
 - Optional intensity filter (validated against VALID_INTENSITIES)
 - Shows all instances ordered by date ASC
 - Format: `date | #index | intensity | sets | rest: values | notes`
@@ -270,8 +272,10 @@ All numeric inputs loop until valid:
 - Column offsets auto-detected by scanning header row for `Date` columns — no manual updates needed when new months are added
 - Supports any number of months, no 12-month limit
 - Safe for multi-year CSVs — sessions matched by date so repeated month names across years won't collide
-- Identifies lifting days by split day keyword in exercise column + valid intensity in weight column
-- Skips cardio, circuit, rest days
+- Sessions with no intensity in the CSV are imported with `None` as intensity rather than being skipped
+- If intensity cell is blank next to a split day header, session is still created with `current_intensity = None`
+- CSV opened with `latin-1` encoding and `newline=None` to handle Windows line endings and special characters
+- `VALID_SPLITS` must match exact header names in CSV (e.g. `"Compounds Day"`) — update when adding new split types
 - Skips sessions that already exist (matched by user, date, split day) — safe to re-run
 - Skips exercise instances that already exist in a session (matched by exercise_id, workout_index)
 - Multi-set weights/reps stored as comma-separated strings e.g. `"120, 127.5"`

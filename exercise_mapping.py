@@ -53,7 +53,7 @@ EXERCISE_MAPPING = {
     "seated neutral one arm cable rows":    {"muscle_group": "back",      "aliases": ["d grip seated cable rows"]},
     "seated supinated one arm cable rows":  {"muscle_group": "back",      "aliases": []},
     "seated supinated cable rows":          {"muscle_group": "back",      "aliases": ["supinated cable rows", "supinated seated cable rows"]},
-    "kneeling supinated cable rows":        {"muscle_group": "back",      "aliases": ["supinated kneeling cable rows"]},
+    "kneeling one arm supinated cable rows": {"muscle_group": "back",      "aliases": ["supinated kneeling cable rows"]},
     "lat pulldowns":                        {"muscle_group": "back",      "aliases": []},
     "neutral lat pulldowns":                {"muscle_group": "back",      "aliases": []},
     "wide grip lat pulldowns":              {"muscle_group": "back",      "aliases": []},
@@ -61,6 +61,8 @@ EXERCISE_MAPPING = {
     "supinated lat pulldowns":              {"muscle_group": "back",      "aliases": ["supinated lat pulldows"]},
     "flat bar lat pullovers":               {"muscle_group": "back",      "aliases": ["flat bar cable pullovers"]},
     "rope lat pullovers":                   {"muscle_group": "back",      "aliases": ["rope pullovers"]},
+    "one arm lat pulldowns":                {"muscle_group": "back",      "aliases": ["rope pullovers"]},
+    "smith machine rows":                   {"muscle_group": "back",      "aliases": ["rope pullovers"]},
 
     # Shoulders
     "cable lateral raises":                 {"muscle_group": "shoulders", "aliases": []},
@@ -107,6 +109,7 @@ EXERCISE_MAPPING = {
     "one arm db overhead triceps extensions": {"muscle_group": "triceps", "aliases": ["one arm db triceps overhead extensions", "one arm db overhead extensions", "one arm overhead db extensions"]},
     "db skull crushers":                    {"muscle_group": "triceps",   "aliases": ["skull crushers"]},
     "triceps press machine":                {"muscle_group": "triceps",   "aliases": ["tricpes press machine"]},
-    "tricep pushups":                       {"muscle_group": "triceps",   "aliases": []},
+    "triceps pushups":                      {"muscle_group": "triceps",   "aliases": []},
     "db kickbacks":                         {"muscle_group": "triceps",   "aliases": []},
+    "one arm cable triceps kickbacks":      {"muscle_group": "triceps",   "aliases": []},
 }

@@ -5,7 +5,7 @@ from exercise_mapping import EXERCISE_MAPPING, VALID_MUSCLE_GROUPS
 
 CSV_PATH = "Gym Chart.csv"
 USERNAME = "cole prochilo"
-VALID_SPLITS = {"B/B Day", "C/T Day", "S/L Day"}
+VALID_SPLITS = {"B/B Day", "C/T Day", "S/L Day", "Compounds Day"}
 VALID_INTENSITIES = {"light", "normal", "heavy"}
 
 
@@ -65,6 +65,7 @@ def get_month_offsets(rows):
     return [i for i, cell in enumerate(header) if cell.strip() == "Date"]
 
 
+def get_user_id(conn):
     row = conn.execute("SELECT user_id FROM users WHERE username = ?", (USERNAME,)).fetchone()
     if not row:
         raise ValueError(f"User '{USERNAME}' not found in DB. Please register first.")
@@ -86,9 +87,9 @@ def resolve_exercise(conn, name):
     for ex in all_exercises:
         print(f"  {ex[0]}")
 
-    choice = input("\n[n] new exercise  [a] add as alias: ").strip().lower()
+    choice = input("\n[n] new exercise  [a] add as alias: ").strip().lower().replace("\r", "")
     if choice == "a":
-        primary = input("Primary name to alias to: ").strip().lower()
+        primary = input("Primary name to alias to: ").strip().lower().replace("\r", "")
         row = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (primary,)).fetchone()
         if not row:
             print(f"'{primary}' not found, creating '{name}' as new primary instead.")
@@ -99,7 +100,7 @@ def resolve_exercise(conn, name):
         print(f"Alias '{name}' added to primary '{primary}'.")
         return row[0]
     else:
-        primary = input("Primary name for new exercise: ").strip().lower()
+        primary = input("Primary name for new exercise: ").strip().lower().replace("\r", "")
         muscle_group = _prompt_muscle_group()
         conn.execute("INSERT INTO exercises (primary_name, muscle_group) VALUES (?, ?)", (primary, muscle_group))
         exercise_id = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (primary,)).fetchone()[0]
@@ -117,7 +118,7 @@ def import_csv():
     with get_conn() as conn:
         user_id = get_user_id(conn)
 
-    with open(CSV_PATH, newline="", encoding="utf-8-sig") as f:
+    with open(CSV_PATH, newline=None, encoding="latin-1") as f:
         rows = list(csv.reader(f))
 
     month_offsets = get_month_offsets(rows)
@@ -159,13 +160,12 @@ def import_csv():
             # check if this row is a workout header (split day + intensity)
             if exercise_cell in VALID_SPLITS:
                 intensity = weight_cell.strip().lower()
-                if intensity in VALID_INTENSITIES:
-                    current_split = exercise_cell.replace(" Day", "").replace("/", "/")
-                    current_intensity = intensity
+                current_split = exercise_cell.replace(" Day", "")
+                current_intensity = intensity if intensity in VALID_INTENSITIES else None
                 continue
 
             # skip if we don't have a valid lifting session context
-            if not current_date or not current_split or not current_intensity:
+            if not current_date or not current_split:
                 continue
 
             # skip empty exercise rows
