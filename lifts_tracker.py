@@ -448,7 +448,10 @@ def prompt_view_history(user):
             if row[7] is not None:
                 instances[key]["rests"].append(str(_fmt_weight(row[7])))
 
+        instance_count = len(instances)
+
         print(f"\n--- {primary_name} history ---")
+        print(f"\nInstance Count: {instance_count}\n")
 
         for (instance_id, date, intensity, workout_index, notes), data in instances.items():
             rest_str = f" | rest: {','.join(data['rests'])}" if data["rests"] else ""
