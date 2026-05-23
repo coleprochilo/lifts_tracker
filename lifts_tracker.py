@@ -661,7 +661,7 @@ def manage_split_days():
 def main_loop(user):
     print(f"\n{'='*50}\n         LIFTS TRACKER - Welcome, {user.username}\n{'='*50}")
     while True:
-        print("\n1. Start new workout session\n2. View exercise history\n3. View exercise graph\n4. View workouts by date\n5. Manage split days\n6. Plan workout\nq. Quit")
+        print("\n----- Choose a freaky number already -----\n1. Start new workout session\n2. View exercise history\n3. View exercise graph\n4. View workouts by date\n5. Manage split days\n6. Plan workout\nq. Quit")
         choice = input("\n> ").strip().lower()
         if choice == "1":
             while True:
