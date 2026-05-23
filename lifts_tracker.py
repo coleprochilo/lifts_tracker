@@ -388,50 +388,180 @@ def prompt_log_exercise(user, session):
     instance = Exercise_Instance(name, intensity, workout_index, notes, weights, reps, rest_times)
     user.add_exercise_instance(instance, session)
 
-
 def prompt_view_history(user):
-    result = _browse_muscle_group()
-    if not result:
-        return
-    exercise_id, name = result
+    while True:
+        result = _browse_muscle_group()
+        if not result:
+            return
 
-    with get_conn() as conn:
-        primary_name = conn.execute("SELECT primary_name FROM exercises WHERE exercise_id = ?", (exercise_id,)).fetchone()[0]
-        filter_intensity = input("Filter by intensity (leave blank for all): ").strip().lower() or None
-        if filter_intensity:
-            while filter_intensity not in VALID_INTENSITIES:
-                print(f"Invalid intensity, choose from {', '.join(VALID_INTENSITIES)} or leave blank for all.")
-                filter_intensity = input("Filter by intensity: ").strip().lower() or None
-                if not filter_intensity:
-                    break
-        query = """
-            SELECT ei.instance_id, ws.date, ei.intensity, ei.workout_index, ei.notes,
-                   es.weight, es.reps, es.rest_time, es.set_number
-            FROM exercise_instances ei
-            JOIN workout_sessions ws ON ei.workout_id = ws.workout_id
-            JOIN exercise_sets es ON es.instance_id = ei.instance_id
-            WHERE ei.exercise_id = ? AND ws.user_id = ?
-        """
-        params = [exercise_id, user.user_id]
-        if filter_intensity:
-            query += " AND ei.intensity = ?"
-            params.append(filter_intensity)
-        query += " ORDER BY ws.date ASC, ei.instance_id ASC, es.set_number ASC"
-        rows = conn.execute(query, params).fetchall()
-    if not rows:
-        print("No history found.")
+        exercise_id, exercise_name = result
+
+        with get_conn() as conn:
+            primary_name = conn.execute(
+                "SELECT primary_name FROM exercises WHERE exercise_id = ?",
+                (exercise_id,)
+            ).fetchone()[0]
+
+            filter_intensity = input(
+                "Filter by intensity (light / normal / heavy) or leave blank for all: "
+            ).strip().lower() or None
+
+            if filter_intensity:
+                while filter_intensity not in VALID_INTENSITIES:
+                    print(f"Invalid intensity. Choose from {', '.join(VALID_INTENSITIES)} or leave blank.")
+                    filter_intensity = input("Filter by intensity: ").strip().lower() or None
+                    if not filter_intensity:
+                        break
+
+            query = """
+                SELECT ei.instance_id, ws.date, ei.intensity, ei.workout_index, ei.notes,
+                       es.weight, es.reps, es.rest_time, es.set_number
+                FROM exercise_instances ei
+                JOIN workout_sessions ws ON ei.workout_id = ws.workout_id
+                JOIN exercise_sets es ON es.instance_id = ei.instance_id
+                WHERE ei.exercise_id = ? AND ws.user_id = ?
+            """
+
+            params = [exercise_id, user.user_id]
+
+            if filter_intensity:
+                query += " AND ei.intensity = ?"
+                params.append(filter_intensity)
+
+            query += " ORDER BY ws.date ASC, ei.instance_id ASC, es.set_number ASC"
+
+            rows = conn.execute(query, params).fetchall()
+
+        if not rows:
+            print("No history found.")
+            return
+
+        instances = {}
+        for row in rows:
+            key = (row[0], row[1], row[2], row[3], row[4])
+            instances.setdefault(key, {"sets": [], "rests": []})
+
+            instances[key]["sets"].append(
+                f"{_fmt_weight(row[5])}x{_fmt_weight(row[6])}"
+            )
+
+            if row[7] is not None:
+                instances[key]["rests"].append(str(_fmt_weight(row[7])))
+
+        print(f"\n--- {primary_name} history ---")
+
+        for (instance_id, date, intensity, workout_index, notes), data in instances.items():
+            rest_str = f" | rest: {','.join(data['rests'])}" if data["rests"] else ""
+            print(
+                f"{date} | #{workout_index} | {intensity} | "
+                f"{','.join(data['sets'])}{rest_str} | notes: {notes}"
+            )
+
+        break
+
+
+def prompt_plan_workout(user):
+    print("\nEnter exercises one by one (leave blank to finish):")
+    exercise_ids = []
+    while True:
+        print("\nSelect a muscle group or enter an exercise name (blank to finish):")
+        for i, mg in enumerate(VALID_MUSCLE_GROUPS, 1):
+            print(f"  {i}. {mg}")
+        entry = input("\n  or type an exercise name: ").strip().lower()
+        if not entry:
+            break
+        if entry.isdigit() and 1 <= int(entry) <= len(VALID_MUSCLE_GROUPS):
+            entry = VALID_MUSCLE_GROUPS[int(entry) - 1]
+        if entry in VALID_MUSCLE_GROUPS:
+            with get_conn() as conn:
+                exercises = conn.execute(
+                    "SELECT exercise_id, primary_name FROM exercises WHERE muscle_group = ? ORDER BY primary_name",
+                    (entry,)
+                ).fetchall()
+            if not exercises:
+                print(f"No exercises found for '{entry}'.")
+                continue
+            print(f"\n{entry} exercises:")
+            for i, (_, name) in enumerate(exercises, 1):
+                print(f"  {i}. {name}")
+            while True:
+                try:
+                    choice = int(input("\nSelect exercise: ").strip())
+                    if 1 <= choice <= len(exercises):
+                        exercise_ids.append(exercises[choice - 1])
+                        break
+                    print(f"Enter a number between 1 and {len(exercises)}.")
+                except ValueError:
+                    print("Must enter a numeric value.")
+        else:
+            with get_conn() as conn:
+                row = conn.execute("SELECT exercise_id, primary_name FROM exercises WHERE primary_name = ?", (entry,)).fetchone()
+                if not row:
+                    row = conn.execute("""
+                        SELECT e.exercise_id, e.primary_name FROM exercise_aliases ea
+                        JOIN exercises e ON e.exercise_id = ea.exercise_id
+                        WHERE ea.alias = ?
+                    """, (entry,)).fetchone()
+                if not row:
+                    all_exercises = conn.execute("SELECT exercise_id, primary_name FROM exercises").fetchall()
+                    all_aliases = conn.execute("SELECT exercise_id, alias FROM exercise_aliases").fetchall()
+                    close_match = next((e for e in all_exercises if entry in e[1] or e[1] in entry), None)
+                    close_match = close_match or next((a for a in all_aliases if entry in a[1] or a[1] in entry), None)
+                    if close_match:
+                        print(f"Did you mean '{close_match[1]}'? (y/n)")
+                        if input().strip().lower() == "y":
+                            row = conn.execute("SELECT exercise_id, primary_name FROM exercises WHERE exercise_id = ?", (close_match[0],)).fetchone()
+                        else:
+                            print(f"No exercise found for '{entry}'.")
+                            continue
+                    else:
+                        print(f"No exercise found for '{entry}'.")
+                        continue
+            if row:
+                exercise_ids.append(row)
+
+    if not exercise_ids:
+        print("No exercises entered.")
         return
-    instances = {}
-    for row in rows:
-        key = (row[0], row[1], row[2], row[3], row[4])
-        instances.setdefault(key, {"sets": [], "rests": []})
-        instances[key]["sets"].append(f"{_fmt_weight(row[5])}x{_fmt_weight(row[6])}")
-        if row[7] is not None:
-            instances[key]["rests"].append(str(_fmt_weight(row[7])))
-    print(f"\n--- {primary_name} history ---")
-    for (instance_id, date, intensity, workout_index, notes), data in instances.items():
-        rest_str = f" | rest: {','.join(data['rests'])}" if data['rests'] else ""
-        print(f"{date} | #{workout_index} | {intensity} | {','.join(data['sets'])}{rest_str} | notes: {notes}")
+
+    for exercise_id, primary_name in exercise_ids:
+        with get_conn() as conn:
+            query = """
+                SELECT ei.instance_id, ws.date, ei.intensity, ei.workout_index, ei.notes,
+                       es.weight, es.reps, es.rest_time, es.set_number
+                FROM exercise_instances ei
+                JOIN workout_sessions ws ON ei.workout_id = ws.workout_id
+                JOIN exercise_sets es ON es.instance_id = ei.instance_id
+                WHERE ei.exercise_id = ? AND ws.user_id = ?
+                ORDER BY ws.date ASC, ei.instance_id ASC, es.set_number ASC
+            """
+            rows = conn.execute(query, [exercise_id, user.user_id]).fetchall()
+        if not rows:
+            print(f"\n--- {primary_name} history ---")
+            print("No history found.")
+            continue
+        instances = {}
+        for row in rows:
+            key = (row[0], row[1], row[2], row[3], row[4])
+            instances.setdefault(key, {"sets": [], "rests": []})
+            instances[key]["sets"].append(f"{_fmt_weight(row[5])}x{_fmt_weight(row[6])}")
+            if row[7] is not None:
+                instances[key]["rests"].append(str(_fmt_weight(row[7])))
+        print(f"\n--- {primary_name} history ---")
+        for (instance_id, date, intensity, workout_index, notes), data in instances.items():
+            rest_str = f" | rest: {','.join(data['rests'])}" if data['rests'] else ""
+            print(f"{date} | #{workout_index} | {intensity} | {','.join(data['sets'])}{rest_str} | notes: {notes}")
+
+    import sys, time, select
+    time.sleep(0.3)
+    while select.select([sys.stdin], [], [], 0)[0]:
+        sys.stdin.read(1)
+    input("\nPress enter to return to main menu...")
+    time.sleep(0.3)
+    while select.select([sys.stdin], [], [], 0)[0]:
+        sys.stdin.read(1)
+
+    return
 
 
 def prompt_view_graph(user):
@@ -528,7 +658,7 @@ def manage_split_days():
 def main_loop(user):
     print(f"\n{'='*50}\n         LIFTS TRACKER - Welcome, {user.username}\n{'='*50}")
     while True:
-        print("\n1. Start new workout session\n2. View exercise history\n3. View exercise graph\n4. View workouts by date\n5. Manage split days\nq. Quit")
+        print("\n1. Start new workout session\n2. View exercise history\n3. View exercise graph\n4. View workouts by date\n5. Manage split days\n6. Plan workout\nq. Quit")
         choice = input("\n> ").strip().lower()
         if choice == "1":
             while True:
@@ -574,6 +704,8 @@ def main_loop(user):
             user.get_workouts_by_date(parsed)
         elif choice == "5":
             manage_split_days()
+        elif choice == "6":
+            prompt_plan_workout(user)
         elif choice == "q":
             print("See you next time.")
             break

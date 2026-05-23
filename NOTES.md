@@ -323,15 +323,22 @@ All numeric inputs loop until valid:
 ---
 
 ## Known Issues / TODO
-- `prompt_view_history` searches by primary name/alias only — does not do fuzzy matching
-  (unlike `_resolve_exercise` which does fuzzy matching)
 - No way to delete a session or exercise from the CLI yet
 - No way to view all sessions (only by date)
-- No way to edit instances from past sessions (only editable during active session confirm flow) — TODO
-- CSV import `MONTH_OFFSETS` removed — now auto-detected from header row
-- **ACTIVE BUG**: after closing a graph window and answering `n` to "View another graph?", the main menu re-triggers option 3 (view graph) due to a stray newline being sent to stdin when the matplotlib TkAgg window closes. Tried: termios flush, double flush with sleep, select drain. Not yet resolved.
-- Fixed: `prompt_view_history` was returning `exercise_id` instead of `primary_name` when browsing by muscle group (wrong tuple index)
-- Fixed: duplicate `prompt_view_history` body was left inside `prompt_view_graph` — cleaned up by extracting shared `_browse_muscle_group()` helper used by both functions
+- No way to edit instances from past sessions (only editable during active session confirm flow)
+- **Plan workout flow**: new main menu option — enter exercises one by one, all history for each printed back to back. Replaces having to go through view history separately for each exercise before a session
+- **Number instances in view history**: keep format exactly the same but add a count number on the left of each instance so user can see total times performed
+- **Circuit tracking**: new DB entries for circuits — save circuit as object with exercises/reps/rest, log instances with time and notes, graph frequency
+- **Session count**: display total count of all workout sessions somewhere
+- **Misc/no split day CSV import**: days with no split day header currently skipped — need a way to pick these up and assign them a split day during import
+- **Resolve exercise prompt improvements during import**:
+  - Print all exercises grouped by muscle group instead of flat list
+  - Print the unmatched exercise name at the bottom of the list not the top
+  - Exercises created via prompt are NOT added to `exercise_mapping.py` — must be done manually
+  - If primary name entered differs from detected name, detected name IS saved as alias automatically
+- **Mobile app**: React Native + Flask/FastAPI — best solution for gym access to history
+- Fixed: `prompt_view_history` was returning `exercise_id` instead of `primary_name` when browsing by muscle group
+- Fixed: duplicate `prompt_view_history` body was left inside `prompt_view_graph` — cleaned up by extracting shared `_browse_muscle_group()` helper
 
 ## Tab Completion
 - Implemented using `gnureadline` (statically linked GNU readline, more reliable on macOS)
