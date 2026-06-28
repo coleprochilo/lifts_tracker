@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<a class="back-link" href="{{ url_for('index') }}">← Users</a>
+<h1>{{ username.title() }}</h1>
+
+<form class="search-form" action="{{ url_for('search', user_id=user_id) }}" method="get">
+  <input type="text" name="q" placeholder="Search exercises..." autocomplete="off">
+</form>
+
+<div class="section-title">Browse by muscle group</div>
+{% for group in muscle_groups %}
+<div class="card">
+  <a href="{{ url_for('muscle_group', user_id=user_id, group=group) }}">{{ group.title() }}</a>
+</div>
+{% endfor %}
+{% endblock %}

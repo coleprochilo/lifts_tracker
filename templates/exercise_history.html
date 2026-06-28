@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<a class="back-link" href="javascript:history.back()">← Back</a>
+<h1>{{ primary_name.title() }}</h1>
+<div class="username-tag">{{ username.title() }}</div>
+
+<div class="filter-row">
+  <a class="filter-btn {% if not intensity_filter %}active{% endif %}"
+     href="{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id) }}">All</a>
+  <a class="filter-btn {% if intensity_filter == 'light' %}active{% endif %}"
+     href="{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id, intensity='light') }}">Light</a>
+  <a class="filter-btn {% if intensity_filter == 'normal' %}active{% endif %}"
+     href="{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id, intensity='normal') }}">Normal</a>
+  <a class="filter-btn {% if intensity_filter == 'heavy' %}active{% endif %}"
+     href="{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id, intensity='heavy') }}">Heavy</a>
+</div>
+
+{% if not history %}
+  <p style="color:#666;">No history found.</p>
+{% else %}
+  {% for entry in history | reverse %}
+  <div class="card">
+    <div class="date-label">{{ entry.date }} &nbsp;·&nbsp; #{{ entry.workout_index }}</div>
+    <div class="set-row">{{ entry.sets }}</div>
+    {% if entry.rest %}
+      <div class="meta">rest: {{ entry.rest }} min</div>
+    {% endif %}
+    {% if entry.notes %}
+      <div class="meta">notes: {{ entry.notes }}</div>
+    {% endif %}
+    <div style="margin-top:6px;">
+      <span class="badge {{ entry.intensity }}">{{ entry.intensity }}</span>
+    </div>
+  </div>
+  {% endfor %}
+{% endif %}
+{% endblock %}

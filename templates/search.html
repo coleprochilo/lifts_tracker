@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<a class="back-link" href="{{ url_for('user_home', user_id=user_id) }}">← {{ username.title() }}</a>
+<h1>Search</h1>
+
+<form class="search-form" action="{{ url_for('search', user_id=user_id) }}" method="get">
+  <input type="text" name="q" value="{{ query }}" placeholder="Search exercises..." autocomplete="off" autofocus>
+</form>
+
+{% if query %}
+  {% if results %}
+    {% for exercise_id, primary_name in results %}
+    <div class="card">
+      <a href="{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id) }}">{{ primary_name.title() }}</a>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="color:#666;">No exercises found for "{{ query }}".</p>
+  {% endif %}
+{% endif %}
+{% endblock %}

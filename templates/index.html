@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Lifts Tracker</h1>
+<h2>Who's lifting?</h2>
+
+{% for user_id, username in users %}
+<div class="card">
+  <a href="{{ url_for('user_home', user_id=user_id) }}">{{ username.title() }}</a>
+</div>
+{% endfor %}
+{% endblock %}

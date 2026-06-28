@@ -24,6 +24,7 @@ last time and improve each session. Eventually will be expanded to a mobile app.
 - `bcrypt` for password hashing
 - `python-dateutil` for flexible date parsing
 - `matplotlib` for data visualization
+- `flask` for the web app
 - No ORM — raw SQL queries
 
 ---
@@ -34,6 +35,7 @@ last time and improve each session. Eventually will be expanded to a mobile app.
 - `schema.sql` — SQLite schema
 - `graphs.py` — all graphing logic, called from main app
 - `import_csv.py` — one-time CSV import script for historical data
+- `web_app.py` — Flask web app for querying exercise history from phone at the gym
 - `exercise_mapping.py` — full primary name and alias mapping, seeded into DB on init
 - `primary_and_aliases_mapping.txt` — reference document for exercise naming decisions
 - `lifts_tracker.db` — SQLite database file (delete to reset)
@@ -317,6 +319,28 @@ All numeric inputs loop until valid:
 - Manual entry at the gym still works alongside this for real-time logging
 
 ---
+
+## Web App (`web_app.py`)
+- Read-only Flask app for querying exercise history from phone at the gym
+- Runs on port 5001 (port 5000 conflicts with macOS AirPlay Receiver)
+- Multi-user: home page shows all users, each user has their own history view
+- Routes:
+  - `GET /` — user selector
+  - `GET /user/<id>` — search bar + muscle group browse
+  - `GET /user/<id>/muscle/<group>` — exercise list for that group
+  - `GET /user/<id>/exercise/<id>` — full history with light/normal/heavy filter
+  - `GET /user/<id>/search?q=` — search by primary name or alias
+- Dark mobile-friendly UI, templated with Jinja2 in `templates/`
+- Templates: `base.html`, `index.html`, `user_home.html`, `muscle_group.html`, `exercise_history.html`, `search.html`
+- Deployed on AWS EC2 (see Deployment section below)
+- DB is pushed to EC2 manually via `scp` after each `import_csv.py` run (auto-added to end of import script)
+
+## Deployment (EC2)
+- TODO: Launch t2.micro free tier EC2 instance
+- TODO: Configure security group to allow HTTP on port 5001
+- TODO: SSH in, install Python + Flask, upload DB and code
+- TODO: Add `scp` command to end of `import_csv.py` to auto-push DB after import
+- Workflow: update Excel → export CSV → run `import_csv.py` (auto-pushes DB to EC2) → done
 
 ## Future Plans
 - Data visualization ✅ — implemented in `graphs.py`
