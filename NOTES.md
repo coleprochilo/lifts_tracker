@@ -336,10 +336,13 @@ All numeric inputs loop until valid:
 - DB is pushed to EC2 manually via `scp` after each `import_csv.py` run (auto-added to end of import script)
 
 ## Deployment (EC2)
-- TODO: Launch t2.micro free tier EC2 instance
-- TODO: Configure security group to allow HTTP on port 5001
-- TODO: SSH in, install Python + Flask, upload DB and code
-- TODO: Add `scp` command to end of `import_csv.py` to auto-push DB after import
+- EC2 instance running: `107.21.171.224`, instance ID `i-09fcecab3b67d5ba9`, type `t3.micro`
+- Key pair saved at `~/.ssh/lifts-tracker-key.pem`
+- Security group `sg-0016bf2ecae215eb8` — ports 22 and 5001 open
+- App lives at `~/app/` on the server
+- Flask started with `nohup python3 web_app.py > app.log 2>&1 &`
+- Access from phone: `http://107.21.171.224:5001`
+- `scp` command added to end of `import_csv.py` — auto-pushes DB to EC2 after import completes
 - Workflow: update Excel → export CSV → run `import_csv.py` (auto-pushes DB to EC2) → done
 
 ## Future Plans

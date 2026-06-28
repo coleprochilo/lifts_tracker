@@ -225,3 +225,14 @@ def import_csv():
 
 if __name__ == "__main__":
     import_csv()
+    import subprocess, os
+    print("Pushing DB to EC2...")
+    result = subprocess.run([
+        "scp", "-i", os.path.expanduser("~/.ssh/lifts-tracker-key.pem"),
+        "lifts_tracker.db",
+        "ec2-user@107.21.171.224:~/app/lifts_tracker.db"
+    ], capture_output=True, text=True)
+    if result.returncode == 0:
+        print("DB pushed to EC2 successfully.")
+    else:
+        print(f"DB push failed: {result.stderr}")
