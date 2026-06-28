@@ -187,6 +187,7 @@ Order of checks:
 3. View exercise graph
 4. View workouts by date
 5. Manage split days
+6. Plan workout
 q. Quit
 
 ### Starting a Session
@@ -216,6 +217,12 @@ q. Quit
 - Shows all instances ordered by date ASC
 - Format: `date | #index | intensity | sets | rest: values | notes`
 - Rest omitted from output if no rest values stored for that instance
+
+### Plan Workout
+- New main menu option 6
+- Shows muscle group browse or direct name entry, blank to finish adding exercises
+- Prints full history for each exercise back to back
+- stdin flushed with select drain before "Press enter to return to main menu..." to prevent stray input leaking into main menu
 
 ### View Exercise Graph
 - Same muscle group browse flow as view history
@@ -326,7 +333,7 @@ All numeric inputs loop until valid:
 - No way to delete a session or exercise from the CLI yet
 - No way to view all sessions (only by date)
 - No way to edit instances from past sessions (only editable during active session confirm flow)
-- **Plan workout flow**: new main menu option — enter exercises one by one, all history for each printed back to back. Replaces having to go through view history separately for each exercise before a session
+- **Plan workout flow** ✅: new main menu option 6 — enter exercises one by one by muscle group browse or name, all history printed back to back. Press enter to return to main menu when done.
 - **Number instances in view history**: keep format exactly the same but add a count number on the left of each instance so user can see total times performed
 - **Circuit tracking**: new DB entries for circuits — save circuit as object with exercises/reps/rest, log instances with time and notes, graph frequency
 - **Session count**: display total count of all workout sessions somewhere
