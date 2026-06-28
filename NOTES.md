@@ -34,8 +34,7 @@ last time and improve each session. Eventually will be expanded to a mobile app.
 - `db.py` — DB connection and schema initialization
 - `schema.sql` — SQLite schema
 - `graphs.py` — all graphing logic, called from main app
-- `import_csv.py` — one-time CSV import script for historical data
-- `web_app.py` — Flask web app for querying exercise history from phone at the gym
+- `deploy.sh` — pushes all app files to EC2 and restarts the service. Run `./deploy.sh` after any UI/code changes
 - `exercise_mapping.py` — full primary name and alias mapping, seeded into DB on init
 - `primary_and_aliases_mapping.txt` — reference document for exercise naming decisions
 - `lifts_tracker.db` — SQLite database file (delete to reset)
@@ -336,11 +335,13 @@ All numeric inputs loop until valid:
 - DB is pushed to EC2 manually via `scp` after each `import_csv.py` run (auto-added to end of import script)
 
 ## Deployment (EC2)
-- EC2 instance running: `107.21.171.224`, instance ID `i-09fcecab3b67d5ba9`, type `t3.micro`
+- EC2 instance running: `54.85.25.6` (Elastic IP — permanent), instance ID `i-09fcecab3b67d5ba9`, type `t3.micro`
 - Key pair saved at `~/.ssh/lifts-tracker-key.pem`
 - Security group `sg-0016bf2ecae215eb8` — ports 22 and 5001 open
 - App lives at `~/app/` on the server
 - Flask started with `nohup python3 web_app.py > app.log 2>&1 &`
+- Auto-start configured via systemd service at `/etc/systemd/system/lifts-tracker.service` — survives reboots
+- To check status: `sudo systemctl status lifts-tracker`
 - Access from phone: `http://107.21.171.224:5001`
 - `scp` command added to end of `import_csv.py` — auto-pushes DB to EC2 after import completes
 - Workflow: update Excel → export CSV → run `import_csv.py` (auto-pushes DB to EC2) → done

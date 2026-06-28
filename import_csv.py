@@ -230,7 +230,7 @@ if __name__ == "__main__":
     result = subprocess.run([
         "scp", "-i", os.path.expanduser("~/.ssh/lifts-tracker-key.pem"),
         "lifts_tracker.db",
-        "ec2-user@107.21.171.224:~/app/lifts_tracker.db"
+        "ec2-user@54.85.25.6:~/app/lifts_tracker.db"
     ], capture_output=True, text=True)
     if result.returncode == 0:
         print("DB pushed to EC2 successfully.")
