@@ -154,7 +154,7 @@ def import_csv():
                 current_date = parsed_date
                 workout_id = None
                 workout_index = 0
-                current_split = None
+                current_split = "misc"
                 current_intensity = None
 
             # check if this row is a workout header (split day + intensity)
@@ -165,7 +165,7 @@ def import_csv():
                 continue
 
             # skip if we don't have a valid lifting session context
-            if not current_date or not current_split:
+            if not current_date:
                 continue
 
             # skip empty exercise rows

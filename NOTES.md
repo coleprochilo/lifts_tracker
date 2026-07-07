@@ -282,6 +282,7 @@ All numeric inputs loop until valid:
 - Safe for multi-year CSVs — sessions matched by date so repeated month names across years won't collide
 - Sessions with no intensity in the CSV are imported with `None` as intensity rather than being skipped
 - If intensity cell is blank next to a split day header, session is still created with `current_intensity = None`
+- Sessions with no split day header auto-import under `misc` — `current_split` defaults to `"misc"` on each new date row
 - CSV opened with `latin-1` encoding and `newline=None` to handle Windows line endings and special characters
 - `VALID_SPLITS` must match exact header names in CSV (e.g. `"Compounds Day"`) — update when adding new split types
 - Skips sessions that already exist (matched by user, date, split day) — safe to re-run
@@ -365,7 +366,7 @@ All numeric inputs loop until valid:
 - **Number instances in view history**: keep format exactly the same but add a count number on the left of each instance so user can see total times performed
 - **Circuit tracking**: new DB entries for circuits — save circuit as object with exercises/reps/rest, log instances with time and notes, graph frequency
 - **Session count**: display total count of all workout sessions somewhere
-- **Misc/no split day CSV import**: days with no split day header currently skipped — need a way to pick these up and assign them a split day during import
+- ~~**Misc/no split day CSV import**~~: Fixed — sessions with no split day header now auto-import under `misc` instead of being skipped
 - **Resolve exercise prompt improvements during import**:
   - Print all exercises grouped by muscle group instead of flat list
   - Print the unmatched exercise name at the bottom of the list not the top
