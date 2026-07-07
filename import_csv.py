@@ -82,10 +82,14 @@ def resolve_exercise(conn, name):
         return row[0]
 
     # not found — prompt user
-    all_exercises = conn.execute("SELECT primary_name FROM exercises ORDER BY primary_name").fetchall()
+    all_exercises = conn.execute("SELECT primary_name, muscle_group FROM exercises ORDER BY muscle_group, primary_name").fetchall()
+    current_group = None
+    for primary, muscle_group in all_exercises:
+        if muscle_group != current_group:
+            current_group = muscle_group
+            print(f"  [{muscle_group}]")
+        print(f"    {primary}")
     print(f"\n'{name}' not found. All exercises:")
-    for ex in all_exercises:
-        print(f"  {ex[0]}")
 
     choice = input("\n[n] new exercise  [a] add as alias: ").strip().lower().replace("\r", "")
     if choice == "a":

@@ -321,7 +321,7 @@ All numeric inputs loop until valid:
 ---
 
 ## Web App (`web_app.py`)
-- Read-only Flask app for querying exercise history from phone at the gym
+- Flask app for querying exercise history and logging new instances from phone at the gym
 - Runs on port 5001 (port 5000 conflicts with macOS AirPlay Receiver)
 - Multi-user: home page shows all users, each user has their own history view
 - Routes:
@@ -334,6 +334,14 @@ All numeric inputs loop until valid:
 - Templates: `base.html`, `index.html`, `user_home.html`, `muscle_group.html`, `exercise_history.html`, `search.html`
 - Deployed on AWS EC2 (see Deployment section below)
 - DB is pushed to EC2 manually via `scp` after each `import_csv.py` run (auto-added to end of import script)
+- **Gym logging flow**:
+  - "Create Session" button on user home — prompts for split day, creates session with today's date
+  - "End Session" button on user home — visible only when active session exists for today, confirmation only
+  - "Add Instance" button on every exercise history page — visible only when active session exists for today
+  - Add instance flow: intensity picker → add sets one by one (weight, reps, rest, notes) → commit
+  - Committing attaches instance to today's session
+  - Active session detected by querying for today's date + user — no server-side session state needed
+  - Intensity stored per-instance (unchanged from existing schema)
 
 ## Deployment (EC2)
 - EC2 instance running: `54.85.25.6` (Elastic IP — permanent), instance ID `i-09fcecab3b67d5ba9`, type `t3.micro`
@@ -368,7 +376,7 @@ All numeric inputs loop until valid:
 - **Session count**: display total count of all workout sessions somewhere
 - ~~**Misc/no split day CSV import**~~: Fixed — sessions with no split day header now auto-import under `misc` instead of being skipped
 - **Resolve exercise prompt improvements during import**:
-  - Print all exercises grouped by muscle group instead of flat list
+  - ~~Print all exercises grouped by muscle group instead of flat list~~ ✅ Fixed — exercises now printed grouped by muscle group with headers
   - Print the unmatched exercise name at the bottom of the list not the top
   - Exercises created via prompt are NOT added to `exercise_mapping.py` — must be done manually
   - If primary name entered differs from detected name, detected name IS saved as alias automatically
