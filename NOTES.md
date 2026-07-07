@@ -351,8 +351,13 @@ All numeric inputs loop until valid:
   - After committing an instance, redirects to user home (not exercise history) to avoid back button loop
   - Multiple sessions per day allowed — instances always attach to most recent session (`ORDER BY workout_id DESC LIMIT 1`)
   - `today_session` on user home detected via `local_date` query param (JS sets it from `new Date().toLocaleDateString('en-CA')`)
-  - `exercise_history` passes `latest_session_date` + `latest_session_id` from most recent session regardless of date — Add Instance button always renders, JS appends `local_date` to href, route redirects if no session found for that date
+  - If `local_date` not in URL on page load, JS reloads the page with it so server renders correct banner
+  - `exercise_history` passes `latest_session_date` + `latest_session_id` from most recent session regardless of date — Add Instance button always renders, JS appends `local_date` to href, route redirects with flash message if no session found for that date
   - Timezone: EC2 runs UTC, all date detection uses client local date from JS hidden field or query param — never `date.today()` on server
+  - Session banner and Create Session button both always visible — banner only appears when session exists, button always shown
+  - Flash message shown on exercise history page if Add Instance tapped with no active session
+  - `create_session` POST redirects to `user_home` with `local_date` param so banner renders correctly immediately
+  - Back loop when pressing back from log instance without committing is a known non-issue — unfixable without server-side session state, doesn't affect normal flow
 
 ## Deployment (EC2)
 - EC2 instance running: `54.85.25.6` (Elastic IP — permanent), instance ID `i-09fcecab3b67d5ba9`, type `t3.micro`

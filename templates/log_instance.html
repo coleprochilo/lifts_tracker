@@ -19,10 +19,10 @@
     <div class="section-title">Set 1</div>
     <div class="set-block" style="background:#1a1a1a; border-radius:10px; padding:14px; margin-bottom:10px;">
       <div style="display:flex; gap:8px; margin-bottom:8px;">
-        <input type="number" name="weight" placeholder="Weight (lbs)" step="0.5" min="0" style="flex:1; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
-        <input type="number" name="reps" placeholder="Reps" step="0.5" min="0" style="flex:1; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
+        <input type="number" name="weight" placeholder="Weight (lbs)" step="0.5" min="0" style="flex:1; min-width:0; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
+        <input type="number" name="reps" placeholder="Reps" step="0.5" min="0" style="flex:1; min-width:0; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
       </div>
-      <input type="number" name="rest" placeholder="Rest (min) — leave blank for last set" step="0.5" min="0" style="width:100%; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
+      <input type="number" name="rest" placeholder="Rest (min)" step="0.5" min="0" style="width:100%; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem; box-sizing:border-box;">
     </div>
   </div>
 
@@ -56,10 +56,10 @@
     block.style = 'background:#1a1a1a; border-radius:10px; padding:14px; margin-bottom:10px;';
     block.innerHTML = `
       <div style="display:flex; gap:8px; margin-bottom:8px;">
-        <input type="number" name="weight" placeholder="Weight (lbs)" step="0.5" min="0" style="flex:1; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
-        <input type="number" name="reps" placeholder="Reps" step="0.5" min="0" style="flex:1; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
+        <input type="number" name="weight" placeholder="Weight (lbs)" step="0.5" min="0" style="flex:1; min-width:0; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
+        <input type="number" name="reps" placeholder="Reps" step="0.5" min="0" style="flex:1; min-width:0; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
       </div>
-      <input type="number" name="rest" placeholder="Rest (min) — leave blank for last set" step="0.5" min="0" style="width:100%; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
+      <input type="number" name="rest" placeholder="Rest (min)" step="0.5" min="0" style="width:100%; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem; box-sizing:border-box;">
     `;
     container.appendChild(title);
     container.appendChild(block);

@@ -32,6 +32,13 @@
   </style>
 </head>
 <body>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for msg in messages %}
+        <div style="background:#3a1a1a; color:#ff6b6b; padding:12px; border-radius:10px; margin-bottom:16px; font-size:0.9rem;">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
   {% block content %}{% endblock %}
 </body>
 </html>

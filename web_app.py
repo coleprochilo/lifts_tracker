@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 from db import get_conn
 from datetime import date
 
 app = Flask(__name__)
+app.secret_key = "lifts-tracker-secret"
 
 
 def _fmt_weight(w):
@@ -125,7 +126,7 @@ def create_session(user_id):
                     "INSERT INTO workout_sessions (user_id, date, split_day) VALUES (?, ?, ?)",
                     (user_id, local_date, split_day)
                 )
-            return redirect(url_for("user_home", user_id=user_id))
+            return redirect(url_for("user_home", user_id=user_id, local_date=local_date))
         split_days = conn.execute("SELECT name FROM split_days ORDER BY name").fetchall()
     return render_template("create_session.html", user_id=user_id, username=user[0],
                            split_days=[s[0] for s in split_days])
@@ -144,6 +145,7 @@ def log_instance(user_id, exercise_id):
             (user_id, local_date)
         ).fetchone()
         if not session:
+            flash("No active session for today. Create a session first.")
             return redirect(url_for("exercise_history", user_id=user_id, exercise_id=exercise_id))
         workout_id = session[0]
         exercise = conn.execute("SELECT primary_name FROM exercises WHERE exercise_id = ?", (exercise_id,)).fetchone()
