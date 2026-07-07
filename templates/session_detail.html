@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<a class="back-link" href="{{ url_for('user_home', user_id=user_id) }}">← Back</a>
+<h1>{{ session[2] }}</h1>
+<h2>{{ session[1] }}</h2>
+<div class="username-tag">{{ username.title() }}</div>
+
+{% if not instances %}
+  <p style="color:#666;">No instances logged.</p>
+{% else %}
+  {% for inst in instances %}
+  {% set s = instance_sets[inst[4]] %}
+  <div class="card">
+    <div style="font-size:1rem; margin-bottom:4px;">{{ inst[1].title() }}</div>
+    <div class="set-row">{{ s.sets_str }}</div>
+    {% if s.rest_str %}
+      <div class="meta">rest: {{ s.rest_str }} min</div>
+    {% endif %}
+    {% if inst[3] %}
+      <div class="meta">notes: {{ inst[3] }}</div>
+    {% endif %}
+    <div style="margin-top:6px;">
+      <span class="badge {{ inst[2] }}">{{ inst[2] }}</span>
+    </div>
+  </div>
+  {% endfor %}
+{% endif %}
+{% endblock %}

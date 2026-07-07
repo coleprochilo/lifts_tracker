@@ -68,9 +68,13 @@ def user_home(user_id):
             "SELECT workout_id, split_day FROM workout_sessions WHERE user_id = ? AND date = ? ORDER BY workout_id DESC LIMIT 1",
             (user_id, today)
         ).fetchone()
+        latest_session = conn.execute(
+            "SELECT workout_id, date, split_day FROM workout_sessions WHERE user_id = ? ORDER BY workout_id DESC LIMIT 1",
+            (user_id,)
+        ).fetchone()
     return render_template("user_home.html", user_id=user_id, username=user[0],
                            muscle_groups=[m[0] for m in muscle_groups],
-                           today_session=today_session, today=today)
+                           today_session=today_session, today=today, latest_session=latest_session)
 
 
 @app.route("/user/<int:user_id>/muscle/<group>")
@@ -110,6 +114,39 @@ def get_today_session(user_id):
             "SELECT workout_id FROM workout_sessions WHERE user_id = ? AND date = ?",
             (user_id, date.today().isoformat())
         ).fetchone()
+
+
+@app.route("/user/<int:user_id>/session/<int:workout_id>")
+def session_detail(user_id, workout_id):
+    with get_conn() as conn:
+        user = conn.execute("SELECT username FROM users WHERE user_id = ?", (user_id,)).fetchone()
+        session = conn.execute(
+            "SELECT workout_id, date, split_day FROM workout_sessions WHERE workout_id = ? AND user_id = ?",
+            (workout_id, user_id)
+        ).fetchone()
+        if not user or not session:
+            return redirect(url_for("user_home", user_id=user_id))
+        instances = conn.execute("""
+            SELECT ei.workout_index, e.primary_name, ei.intensity, ei.notes, ei.instance_id
+            FROM exercise_instances ei
+            JOIN exercises e ON ei.exercise_id = e.exercise_id
+            WHERE ei.workout_id = ?
+            ORDER BY ei.workout_index
+        """, (workout_id,)).fetchall()
+        instance_sets = {}
+        for inst in instances:
+            sets = conn.execute(
+                "SELECT weight, reps, rest_time FROM exercise_sets WHERE instance_id = ? ORDER BY set_number",
+                (inst[4],)
+            ).fetchall()
+            def fmt(v):
+                return int(v) if v == int(v) else v
+            instance_sets[inst[4]] = {
+                "sets_str": ", ".join(f"{fmt(s[0])}x{fmt(s[1])}" for s in sets),
+                "rest_str": ", ".join(str(fmt(s[2])) for s in sets[:-1] if s[2] is not None) or None
+            }
+    return render_template("session_detail.html", user_id=user_id, username=user[0],
+                           session=session, instances=instances, instance_sets=instance_sets)
 
 
 @app.route("/user/<int:user_id>/session/create", methods=["GET", "POST"])

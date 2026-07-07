@@ -330,12 +330,13 @@ All numeric inputs loop until valid:
   - `GET /user/<id>/muscle/<group>` — exercise list for that group
   - `GET /user/<id>/exercise/<id>` — full history with light/normal/heavy filter, shows Add Instance button if session active today
   - `GET /user/<id>/search?q=` — search by primary name or alias
+  - `GET /user/<id>/session/<id>` — session detail view showing all instances + sets for that session
   - `GET /user/<id>/session/create` — split day radio picker
   - `POST /user/<id>/session/create` — creates session with today's date + chosen split day, redirects to user home
   - `GET /user/<id>/exercise/<id>/log` — log instance form (intensity picker, dynamic set rows, notes)
   - `POST /user/<id>/exercise/<id>/log` — commits instance + sets to today's session, redirects to user home
 - Dark mobile-friendly UI, templated with Jinja2 in `templates/`
-- Templates: `base.html`, `index.html`, `user_home.html`, `muscle_group.html`, `exercise_history.html`, `search.html`, `create_session.html`, `log_instance.html`
+- Templates: `base.html`, `index.html`, `user_home.html`, `muscle_group.html`, `exercise_history.html`, `search.html`, `create_session.html`, `log_instance.html`, `session_detail.html`
 - Deployed on AWS EC2 (see Deployment section below)
 - DB is pushed to EC2 manually via `scp` after each `import_csv.py` run (auto-added to end of import script)
 - **Gym logging flow**:
@@ -347,7 +348,8 @@ All numeric inputs loop until valid:
   - Committing with no valid sets is a no-op — redirects back without inserting
   - Active session detected by querying for today's date + user_id — fully stateless, no server-side session needed
   - Intensity stored per-instance (unchanged from schema) — entered on the log instance form
-  - No "end session" needed — next day there's no session for today so Add Instance button disappears naturally
+  - Latest session card shown on user home (date + split day) — tappable, links to session detail view
+  - Session detail view shows all instances with sets, rest, notes, and intensity badge
   - After committing an instance, redirects to user home (not exercise history) to avoid back button loop
   - Multiple sessions per day allowed — instances always attach to most recent session (`ORDER BY workout_id DESC LIMIT 1`)
   - `today_session` on user home detected via `local_date` query param (JS sets it from `new Date().toLocaleDateString('en-CA')`)
