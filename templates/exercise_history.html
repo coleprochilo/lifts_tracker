@@ -4,6 +4,16 @@
 <h1>{{ primary_name.title() }}</h1>
 <div class="username-tag">{{ username.title() }}</div>
 
+{% if latest_session_date %}
+  <a id="add-instance-btn" href="{{ url_for('log_instance', user_id=user_id, exercise_id=exercise_id) }}" style="display:block; background:#2979ff; color:#fff; text-align:center; padding:12px; border-radius:10px; margin-bottom:16px; font-size:1rem; font-weight:600;">+ Add Instance</a>
+{% endif %}
+
+<script>
+  const localDate = new Date().toLocaleDateString('en-CA');
+  const btn = document.getElementById('add-instance-btn');
+  if (btn) btn.href = btn.href + '?local_date=' + localDate;
+</script>
+
 <div class="filter-row">
   <a class="filter-btn {% if not intensity_filter %}active{% endif %}"
      href="{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id) }}">All</a>

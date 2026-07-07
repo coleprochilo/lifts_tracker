@@ -326,30 +326,41 @@ All numeric inputs loop until valid:
 - Multi-user: home page shows all users, each user has their own history view
 - Routes:
   - `GET /` — user selector
-  - `GET /user/<id>` — search bar + muscle group browse
+  - `GET /user/<id>` — search bar + muscle group browse, shows Create Session button or active session banner
   - `GET /user/<id>/muscle/<group>` — exercise list for that group
-  - `GET /user/<id>/exercise/<id>` — full history with light/normal/heavy filter
+  - `GET /user/<id>/exercise/<id>` — full history with light/normal/heavy filter, shows Add Instance button if session active today
   - `GET /user/<id>/search?q=` — search by primary name or alias
+  - `GET /user/<id>/session/create` — split day radio picker
+  - `POST /user/<id>/session/create` — creates session with today's date + chosen split day, redirects to user home
+  - `GET /user/<id>/exercise/<id>/log` — log instance form (intensity picker, dynamic set rows, notes)
+  - `POST /user/<id>/exercise/<id>/log` — commits instance + sets to today's session, redirects to user home
 - Dark mobile-friendly UI, templated with Jinja2 in `templates/`
-- Templates: `base.html`, `index.html`, `user_home.html`, `muscle_group.html`, `exercise_history.html`, `search.html`
+- Templates: `base.html`, `index.html`, `user_home.html`, `muscle_group.html`, `exercise_history.html`, `search.html`, `create_session.html`, `log_instance.html`
 - Deployed on AWS EC2 (see Deployment section below)
 - DB is pushed to EC2 manually via `scp` after each `import_csv.py` run (auto-added to end of import script)
 - **Gym logging flow**:
-  - "Create Session" button on user home — prompts for split day, creates session with today's date
-  - "End Session" button on user home — visible only when active session exists for today, confirmation only
-  - "Add Instance" button on every exercise history page — visible only when active session exists for today
-  - Add instance flow: intensity picker → add sets one by one (weight, reps, rest, notes) → commit
-  - Committing attaches instance to today's session
-  - Active session detected by querying for today's date + user — no server-side session state needed
-  - Intensity stored per-instance (unchanged from existing schema)
+  - "Create Session" button on user home — only shown when no session exists for today
+  - Green active session banner on user home shows split day when session exists for today
+  - "Add Instance" button on every exercise history page — only shown when session exists for today
+  - Add instance flow: intensity picker → add sets one by one via "+ Add Set" button (weight, reps, rest per set) → notes → commit
+  - `workout_index` auto-assigned on commit based on count of existing instances in today's session
+  - Committing with no valid sets is a no-op — redirects back without inserting
+  - Active session detected by querying for today's date + user_id — fully stateless, no server-side session needed
+  - Intensity stored per-instance (unchanged from schema) — entered on the log instance form
+  - No "end session" needed — next day there's no session for today so Add Instance button disappears naturally
+  - After committing an instance, redirects to user home (not exercise history) to avoid back button loop
+  - Multiple sessions per day allowed — instances always attach to most recent session (`ORDER BY workout_id DESC LIMIT 1`)
+  - `today_session` on user home detected via `local_date` query param (JS sets it from `new Date().toLocaleDateString('en-CA')`)
+  - `exercise_history` passes `latest_session_date` + `latest_session_id` from most recent session regardless of date — Add Instance button always renders, JS appends `local_date` to href, route redirects if no session found for that date
+  - Timezone: EC2 runs UTC, all date detection uses client local date from JS hidden field or query param — never `date.today()` on server
 
 ## Deployment (EC2)
 - EC2 instance running: `54.85.25.6` (Elastic IP — permanent), instance ID `i-09fcecab3b67d5ba9`, type `t3.micro`
 - Key pair saved at `~/.ssh/lifts-tracker-key.pem`
 - Security group `sg-0016bf2ecae215eb8` — ports 22 and 5001 open
 - App lives at `~/app/` on the server
-- Flask started with `nohup python3 web_app.py > app.log 2>&1 &`
 - Auto-start configured via systemd service at `/etc/systemd/system/lifts-tracker.service` — survives reboots
+- Old `nohup` process was manually killed once (`sudo fuser -k 5001/tcp`) after systemd takeover — no longer needed, systemd owns the process now
 - To check status: `sudo systemctl status lifts-tracker`
 - Access from phone: `http://107.21.171.224:5001`
 - `scp` command added to end of `import_csv.py` — auto-pushes DB to EC2 after import completes

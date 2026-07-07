@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 from db import get_conn
+from datetime import date
 
 app = Flask(__name__)
 
@@ -61,8 +62,14 @@ def user_home(user_id):
         muscle_groups = conn.execute(
             "SELECT DISTINCT muscle_group FROM exercises ORDER BY muscle_group"
         ).fetchall()
+        today = request.args.get("local_date") or date.today().isoformat()
+        today_session = conn.execute(
+            "SELECT workout_id, split_day FROM workout_sessions WHERE user_id = ? AND date = ? ORDER BY workout_id DESC LIMIT 1",
+            (user_id, today)
+        ).fetchone()
     return render_template("user_home.html", user_id=user_id, username=user[0],
-                           muscle_groups=[m[0] for m in muscle_groups])
+                           muscle_groups=[m[0] for m in muscle_groups],
+                           today_session=today_session, today=today)
 
 
 @app.route("/user/<int:user_id>/muscle/<group>")
@@ -81,13 +88,115 @@ def muscle_group(user_id, group):
 def exercise_history(user_id, exercise_id):
     with get_conn() as conn:
         user = conn.execute("SELECT username FROM users WHERE user_id = ?", (user_id,)).fetchone()
+        latest_session = conn.execute(
+            "SELECT workout_id, date FROM workout_sessions WHERE user_id = ? ORDER BY workout_id DESC LIMIT 1",
+            (user_id,)
+        ).fetchone()
     intensity_filter = request.args.get("intensity")
     primary_name, history = get_exercise_history(exercise_id, user_id)
     if intensity_filter:
         history = [h for h in history if h["intensity"] == intensity_filter]
     return render_template("exercise_history.html", user_id=user_id, username=user[0],
                            primary_name=primary_name, history=history,
-                           intensity_filter=intensity_filter, exercise_id=exercise_id)
+                           intensity_filter=intensity_filter, exercise_id=exercise_id,
+                           latest_session_date=latest_session[1] if latest_session else None,
+                           latest_session_id=latest_session[0] if latest_session else None)
+
+
+def get_today_session(user_id):
+    with get_conn() as conn:
+        return conn.execute(
+            "SELECT workout_id FROM workout_sessions WHERE user_id = ? AND date = ?",
+            (user_id, date.today().isoformat())
+        ).fetchone()
+
+
+@app.route("/user/<int:user_id>/session/create", methods=["GET", "POST"])
+def create_session(user_id):
+    with get_conn() as conn:
+        user = conn.execute("SELECT username FROM users WHERE user_id = ?", (user_id,)).fetchone()
+        if not user:
+            return redirect(url_for("index"))
+        if request.method == "POST":
+            split_day = request.form.get("split_day", "").strip()
+            local_date = request.form.get("local_date", "").strip() or date.today().isoformat()
+            if split_day:
+                conn.execute(
+                    "INSERT INTO workout_sessions (user_id, date, split_day) VALUES (?, ?, ?)",
+                    (user_id, local_date, split_day)
+                )
+            return redirect(url_for("user_home", user_id=user_id))
+        split_days = conn.execute("SELECT name FROM split_days ORDER BY name").fetchall()
+    return render_template("create_session.html", user_id=user_id, username=user[0],
+                           split_days=[s[0] for s in split_days])
+
+
+@app.route("/user/<int:user_id>/exercise/<int:exercise_id>/log", methods=["GET", "POST"])
+def log_instance(user_id, exercise_id):
+    with get_conn() as conn:
+        user = conn.execute("SELECT username FROM users WHERE user_id = ?", (user_id,)).fetchone()
+        if not user:
+            return redirect(url_for("index"))
+        local_date = request.form.get("local_date", "").strip() if request.method == "POST" else request.args.get("local_date", "").strip()
+        local_date = local_date or date.today().isoformat()
+        session = conn.execute(
+            "SELECT workout_id FROM workout_sessions WHERE user_id = ? AND date = ? ORDER BY workout_id DESC LIMIT 1",
+            (user_id, local_date)
+        ).fetchone()
+        if not session:
+            return redirect(url_for("exercise_history", user_id=user_id, exercise_id=exercise_id))
+        workout_id = session[0]
+        exercise = conn.execute("SELECT primary_name FROM exercises WHERE exercise_id = ?", (exercise_id,)).fetchone()
+        if not exercise:
+            return redirect(url_for("user_home", user_id=user_id))
+
+        if request.method == "POST":
+            intensity = request.form.get("intensity", "").strip() or None
+            notes = request.form.get("notes", "").strip() or None
+            local_date = request.form.get("local_date", "").strip() or date.today().isoformat()
+            session = conn.execute(
+                "SELECT workout_id FROM workout_sessions WHERE user_id = ? AND date = ? ORDER BY workout_id DESC LIMIT 1",
+                (user_id, local_date)
+            ).fetchone()
+            if not session:
+                return redirect(url_for("exercise_history", user_id=user_id, exercise_id=exercise_id))
+            workout_id = session[0]
+            weights = request.form.getlist("weight")
+            reps = request.form.getlist("reps")
+            rests = request.form.getlist("rest")
+            sets = []
+            for i, (w, r) in enumerate(zip(weights, reps)):
+                try:
+                    weight = float(w)
+                    rep = float(r)
+                except ValueError:
+                    continue
+                rest = None
+                if i < len(rests) - 1:
+                    try:
+                        rest = float(rests[i]) if rests[i].strip() else None
+                    except ValueError:
+                        rest = None
+                sets.append((weight, rep, rest))
+            if sets:
+                workout_index = (conn.execute(
+                    "SELECT COUNT(*) FROM exercise_instances WHERE workout_id = ?", (workout_id,)
+                ).fetchone()[0] or 0) + 1
+                conn.execute(
+                    "INSERT INTO exercise_instances (workout_id, exercise_id, entered_name, intensity, workout_index, notes) VALUES (?, ?, ?, ?, ?, ?)",
+                    (workout_id, exercise_id, exercise[0], intensity, workout_index, notes)
+                )
+                instance_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+                for set_num, (weight, rep, rest) in enumerate(sets, 1):
+                    conn.execute(
+                        "INSERT INTO exercise_sets (instance_id, set_number, weight, reps, rest_time) VALUES (?, ?, ?, ?, ?)",
+                        (instance_id, set_num, weight, rep, rest)
+                    )
+            return redirect(url_for("user_home", user_id=user_id))
+
+    return render_template("log_instance.html", user_id=user_id, username=user[0],
+                           exercise_id=exercise_id, primary_name=exercise[0],
+                           local_date=local_date)
 
 
 @app.route("/user/<int:user_id>/search")

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<a class="back-link" href="{{ url_for('user_home', user_id=user_id) }}">← Back</a>
+<h1>New Session</h1>
+<div class="username-tag">{{ username.title() }}</div>
+
+<form method="post">
+  <input type="hidden" name="local_date" id="local_date">
+  <div class="section-title">Split Day</div>
+  {% for day in split_days %}
+  <label style="display:flex; align-items:center; gap:10px; background:#1a1a1a; border-radius:10px; padding:14px; margin-bottom:10px; cursor:pointer;">
+    <input type="radio" name="split_day" value="{{ day }}" style="width:18px; height:18px;" {% if loop.first %}checked{% endif %}>
+    <span style="font-size:1rem;">{{ day }}</span>
+  </label>
+  {% endfor %}
+  <button type="submit" style="width:100%; background:#2979ff; color:#fff; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; margin-top:8px; cursor:pointer;">Create Session</button>
+</form>
+<script>
+  document.getElementById('local_date').value = new Date().toLocaleDateString('en-CA');
+</script>
+{% endblock %}

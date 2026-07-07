@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<a class="back-link" href="{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id) }}">← Back</a>
+<h1>{{ primary_name.title() }}</h1>
+<div class="username-tag">{{ username.title() }}</div>
+
+<form method="post" id="log-form">
+  <input type="hidden" name="local_date" id="local_date" value="{{ local_date }}">
+
+  <div class="section-title">Intensity</div>
+  <div class="filter-row" style="margin-bottom:20px;">
+    <button type="button" class="filter-btn intensity-btn" data-val="light">Light</button>
+    <button type="button" class="filter-btn intensity-btn active" data-val="normal">Normal</button>
+    <button type="button" class="filter-btn intensity-btn" data-val="heavy">Heavy</button>
+  </div>
+  <input type="hidden" name="intensity" id="intensity-input" value="normal">
+
+  <div id="sets-container">
+    <div class="section-title">Set 1</div>
+    <div class="set-block" style="background:#1a1a1a; border-radius:10px; padding:14px; margin-bottom:10px;">
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <input type="number" name="weight" placeholder="Weight (lbs)" step="0.5" min="0" style="flex:1; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
+        <input type="number" name="reps" placeholder="Reps" step="0.5" min="0" style="flex:1; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
+      </div>
+      <input type="number" name="rest" placeholder="Rest (min) — leave blank for last set" step="0.5" min="0" style="width:100%; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
+    </div>
+  </div>
+
+  <button type="button" id="add-set-btn" style="width:100%; background:#1a1a1a; color:#4da6ff; border:none; padding:12px; border-radius:10px; font-size:0.95rem; cursor:pointer; margin-bottom:16px;">+ Add Set</button>
+
+  <div class="section-title">Notes</div>
+  <input type="text" name="notes" placeholder="Optional notes..." style="margin-bottom:16px;">
+
+  <button type="submit" style="width:100%; background:#2979ff; color:#fff; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer;">Commit Instance</button>
+</form>
+
+<script>
+  document.getElementById('local_date').value = new Date().toLocaleDateString('en-CA');
+
+  document.querySelectorAll('.intensity-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.intensity-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('intensity-input').value = btn.dataset.val;
+    });
+  });
+
+  let setCount = 1;
+  document.getElementById('add-set-btn').addEventListener('click', () => {
+    setCount++;
+    const container = document.getElementById('sets-container');
+    const title = document.createElement('div');
+    title.className = 'section-title';
+    title.textContent = `Set ${setCount}`;
+    const block = document.createElement('div');
+    block.style = 'background:#1a1a1a; border-radius:10px; padding:14px; margin-bottom:10px;';
+    block.innerHTML = `
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <input type="number" name="weight" placeholder="Weight (lbs)" step="0.5" min="0" style="flex:1; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
+        <input type="number" name="reps" placeholder="Reps" step="0.5" min="0" style="flex:1; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
+      </div>
+      <input type="number" name="rest" placeholder="Rest (min) — leave blank for last set" step="0.5" min="0" style="width:100%; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
+    `;
+    container.appendChild(title);
+    container.appendChild(block);
+  });
+</script>
+{% endblock %}
