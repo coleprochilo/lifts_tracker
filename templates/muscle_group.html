@@ -3,6 +3,8 @@
 <a class="back-link" href="{{ url_for('user_home', user_id=user_id) }}">← {{ username.title() }}</a>
 <h1>{{ group.title() }}</h1>
 
+<a href="{{ url_for('create_exercise', user_id=user_id, group=group) }}" style="display:block; text-align:center; background:#1a1a1a; color:#4da6ff; border-radius:10px; padding:12px; margin-bottom:16px; font-size:0.95rem; font-weight:600; text-decoration:none;">+ New Exercise</a>
+
 {% for exercise_id, primary_name in exercises %}
 <div class="card">
   <a href="{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id) }}">{{ primary_name.title() }}</a>

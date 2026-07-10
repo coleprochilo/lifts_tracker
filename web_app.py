@@ -84,12 +84,34 @@ def user_home(user_id):
             (user_id, today)
         ).fetchone()
         latest_session = conn.execute(
-            "SELECT workout_id, date, split_day FROM workout_sessions WHERE user_id = ? ORDER BY workout_id DESC LIMIT 1",
-            (user_id,)
+            "SELECT workout_id, date, split_day FROM workout_sessions WHERE user_id = ? AND workout_id != ? ORDER BY workout_id DESC LIMIT 1",
+            (user_id, today_session[0] if today_session else -1)
         ).fetchone()
+        latest_split_session = conn.execute(
+            "SELECT workout_id, date, split_day FROM workout_sessions WHERE user_id = ? AND split_day = ? AND workout_id != ? ORDER BY workout_id DESC LIMIT 1",
+            (user_id, today_session[1], today_session[0])
+        ).fetchone() if today_session else None
     return render_template("user_home.html", user_id=user_id, username=user[0],
                            muscle_groups=[m[0] for m in muscle_groups],
-                           today_session=today_session, today=today, latest_session=latest_session)
+                           today_session=today_session, today=today,
+                           latest_session=latest_session, latest_split_session=latest_split_session)
+
+
+@app.route("/user/<int:user_id>/muscle/<group>/new", methods=["GET", "POST"])
+def create_exercise(user_id, group):
+    with get_conn() as conn:
+        user = conn.execute("SELECT username FROM users WHERE user_id = ?", (user_id,)).fetchone()
+        if not user:
+            return redirect(url_for("index"))
+        muscle_groups = [r[0] for r in conn.execute("SELECT DISTINCT muscle_group FROM exercises ORDER BY muscle_group").fetchall()]
+        if request.method == "POST":
+            primary_name = request.form.get("primary_name", "").strip()
+            muscle_group = request.form.get("muscle_group", "").strip()
+            if primary_name and muscle_group:
+                conn.execute("INSERT OR IGNORE INTO exercises (primary_name, muscle_group) VALUES (?, ?)", (primary_name, muscle_group))
+            return redirect(url_for("muscle_group", user_id=user_id, group=muscle_group or group))
+    return render_template("create_exercise.html", user_id=user_id, username=user[0],
+                           group=group, muscle_groups=muscle_groups)
 
 
 @app.route("/user/<int:user_id>/muscle/<group>")

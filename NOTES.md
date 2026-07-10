@@ -351,7 +351,8 @@ All numeric inputs loop until valid:
   - Committing with no valid sets is a no-op — redirects back without inserting
   - Active session detected by querying for today's date + user_id — fully stateless, no server-side session needed
   - Intensity stored per-instance (unchanged from schema) — entered on the log instance form
-  - Latest session card shown on user home (date + split day) — tappable, links to session detail view
+  - Latest session card shown on user home (date + split day) — tappable, links to session detail view, excludes currently active session
+  - When a session is active, a second "Last [split day] session" card also shown — most recent previous session with the same split day, also excludes active session. Lets user reference what they did last time on the same split.
   - Session detail view shows all instances with sets, rest, notes, and intensity badge
   - After committing an instance, redirects to user home (not exercise history) to avoid back button loop
   - Cancel on log instance page uses `location.replace()` to muscle group page — skips log instance in history stack so back button from exercise history goes cleanly to muscle group

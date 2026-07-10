@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>New Exercise</h1>
+<div class="username-tag">{{ username.title() }}</div>
+
+<form id="new-exercise-form">
+  <div class="section-title">Primary Name</div>
+  <input type="text" id="primary-name" placeholder="e.g. Seated DB Row" autocomplete="off">
+
+  <div class="section-title">Muscle Group</div>
+  <div class="filter-row" style="flex-wrap:wrap; margin-bottom:20px;">
+    {% for mg in muscle_groups %}
+    <button type="button" class="filter-btn mg-btn {% if mg == group %}active{% endif %}" data-val="{{ mg }}">{{ mg.title() }}</button>
+    {% endfor %}
+  </div>
+  <input type="hidden" id="muscle-group-input" value="{{ group }}">
+
+  <div id="form-error" style="color:#ff6b6b; font-size:0.85rem; margin-bottom:8px; display:none;">Fill out all fields before committing.</div>
+  <button type="button" onclick="submitForm()" style="width:100%; background:#2979ff; color:#fff; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer; margin-bottom:10px;">Commit Exercise</button>
+  <button type="button" onclick="location.replace('{{ url_for('muscle_group', user_id=user_id, group=group) }}')" style="width:100%; background:#1a1a1a; color:#ff6b6b; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer;">Cancel</button>
+</form>
+
+<script>
+  document.querySelectorAll('.mg-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mg-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('muscle-group-input').value = btn.dataset.val;
+    });
+  });
+
+  function submitForm() {
+    const name = document.getElementById('primary-name').value.trim();
+    const mg = document.getElementById('muscle-group-input').value;
+    if (!name || !mg) {
+      document.getElementById('form-error').style.display = 'block';
+      return;
+    }
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.action = '{{ url_for('create_exercise', user_id=user_id, group=group) }}';
+    [['primary_name', name], ['muscle_group', mg]].forEach(([k, v]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden'; input.name = k; input.value = v;
+      form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
+  }
+</script>
+{% endblock %}

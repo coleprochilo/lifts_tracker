@@ -23,6 +23,14 @@
 </a>
 {% endif %}
 
+{% if latest_split_session %}
+<div class="section-title">Last {{ today_session[1] }} session</div>
+<a href="{{ url_for('session_detail', user_id=user_id, workout_id=latest_split_session[0]) }}" class="card" style="display:block; text-decoration:none;">
+  <div style="color:#f0f0f0; font-size:1rem;">{{ latest_split_session[2] }}</div>
+  <div style="color:#888; font-size:0.8rem; margin-top:4px;">{{ latest_split_session[1] }}</div>
+</a>
+{% endif %}
+
 <div class="section-title">Browse by muscle group</div>
 {% for group in muscle_groups %}
 <div class="card">
