@@ -108,7 +108,9 @@ class User:
             )
             user_id = conn.execute("SELECT user_id FROM users WHERE username = ?", (username,)).fetchone()[0]
         print(f"User {username} registered successfully.")
-        return User(user_id, username)
+        user = User(user_id, username)
+        user._setup_split_days()
+        return user
 
     @staticmethod
     def login(username, password):
@@ -122,6 +124,16 @@ class User:
             sys.exit("Wrong password dumb bitch.")
         print(":P You're In :p")
         return User(row[0], username)
+
+    def _setup_split_days(self):
+        print("Enter your split days one by one (e.g. B/B, C/T, S/L). Leave blank when done.")
+        with get_conn() as conn:
+            while True:
+                name = input("Split day: ").strip()
+                if not name:
+                    break
+                conn.execute("INSERT OR IGNORE INTO split_days (name, user_id) VALUES (?, ?)", (name, self.user_id))
+        print("Split days saved.")
 
     def create_workout(self, date, split_day):
         print(f"Session ready for {date} ({split_day}) — will be saved on first exercise logged.")
@@ -647,14 +659,14 @@ def session_loop(user, session):
             break
 
 
-def manage_split_days():
+def manage_split_days(user):
     with get_conn() as conn:
-        splits = [r[0] for r in conn.execute("SELECT name FROM split_days").fetchall()]
+        splits = [r[0] for r in conn.execute("SELECT name FROM split_days WHERE user_id = ?", (user.user_id,)).fetchall()]
     print("\nCurrent split days: " + ", ".join(splits))
     new = input("Enter new split day to add (or leave blank to cancel): ").strip()
     if new:
         with get_conn() as conn:
-            conn.execute("INSERT OR IGNORE INTO split_days (name) VALUES (?)", (new,))
+            conn.execute("INSERT OR IGNORE INTO split_days (name, user_id) VALUES (?, ?)", (new, user.user_id))
         print(f"'{new}' added.")
 
 
@@ -685,7 +697,7 @@ def main_loop(user):
                         continue
                 break
             with get_conn() as conn:
-                valid_splits = [r[0] for r in conn.execute("SELECT name FROM split_days").fetchall()]
+                valid_splits = [r[0] for r in conn.execute("SELECT name FROM split_days WHERE user_id = ?", (user.user_id,)).fetchall()]
             while True:
                 split_day = input(f"Split day ({', '.join(valid_splits)}): ").strip()
                 if split_day in valid_splits:
@@ -706,7 +718,7 @@ def main_loop(user):
                 continue
             user.get_workouts_by_date(parsed)
         elif choice == "5":
-            manage_split_days()
+            manage_split_days(user)
         elif choice == "6":
             prompt_plan_workout(user)
         elif choice == "q":

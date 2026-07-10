@@ -15,6 +15,9 @@ last time and improve each session. Eventually will be expanded to a mobile app.
 - User writes casually, match that tone
 - User sometimes makes typos — interpret charitably
 - User's name is Cole Prochilo
+- Before implementing a non-trivial feature, present 2-3 approach options and ask which to go with
+- When a feature touches multiple parts of the stack (DB, backend, frontend), migrate the DB first, then update code
+- Prefer doing DB migrations directly via sqlite3 commands rather than wiping and re-seeding
 
 ---
 
@@ -359,7 +362,10 @@ All numeric inputs loop until valid:
   - Session banner and Create Session button both always visible — banner only appears when session exists, button always shown
   - Flash message shown on exercise history page if Add Instance tapped with no active session
   - `create_session` POST redirects to `user_home` with `local_date` param so banner renders correctly immediately
+  - Filter buttons that reload the same page with different params should use `onclick="location.replace('...')"` as `<button>` instead of `<a>` tags — prevents history stack pollution, back button skips over them cleanly. Apply this pattern to any filter/tab UI on any page.
   - Back loop when pressing back from log instance without committing is a known non-issue — unfixable without server-side session state, doesn't affect normal flow
+  - `split_days` table has `user_id` column — each user owns their own split days. Existing rows migrated via `ALTER TABLE` + `UPDATE` (not a wipe/reseed). New users prompted for split days on CLI registration via `_setup_split_days()`. Web app has "+ Add Split Day" button on user home linking to `/user/<id>/split/add`
+  - All split day queries filter by `user_id` in both `lifts_tracker.py` and `web_app.py`
 
 ## Deployment (EC2)
 - EC2 instance running: `54.85.25.6` (Elastic IP — permanent), instance ID `i-09fcecab3b67d5ba9`, type `t3.micro`

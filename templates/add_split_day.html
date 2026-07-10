@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<a class="back-link" href="{{ url_for('user_home', user_id=user_id) }}">← Back</a>
+<h1>Split Days</h1>
+<div class="username-tag">{{ username.title() }}</div>
+
+<div class="section-title">Current split days</div>
+{% for s in splits %}
+<div class="card" style="color:#f0f0f0;">{{ s }}</div>
+{% endfor %}
+
+<div class="section-title" style="margin-top:20px;">Add new</div>
+<form method="post">
+  <input type="text" name="name" placeholder="e.g. B/B" autocomplete="off" style="margin-bottom:12px;">
+  <button type="submit" style="width:100%; background:#2979ff; color:#fff; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer;">Add</button>
+</form>
+{% endblock %}

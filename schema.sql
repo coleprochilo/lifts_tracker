@@ -19,7 +19,9 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS split_days (
     split_day_id  INTEGER PRIMARY KEY AUTOINCREMENT,
-    name          TEXT NOT NULL UNIQUE
+    name          TEXT NOT NULL,
+    user_id       INTEGER REFERENCES users(user_id),
+    UNIQUE(name, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS workout_sessions (

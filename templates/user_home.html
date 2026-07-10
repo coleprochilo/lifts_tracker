@@ -8,13 +8,13 @@
     Session active · {{ today_session[1] }}
   </div>
 {% endif %}
-<a id="create-btn" href="{{ url_for('create_session', user_id=user_id) }}" style="display:block; background:#2979ff; color:#fff; text-align:center; padding:12px; border-radius:10px; margin-bottom:16px; font-size:1rem; font-weight:600;">+ Create Session</a>
+<a id="create-btn" href="{{ url_for('create_session', user_id=user_id) }}" style="display:block; background:#2979ff; color:#fff; text-align:center; padding:12px; border-radius:10px; margin-bottom:8px; font-size:1rem; font-weight:600;">+ Create Session</a>
+<a href="{{ url_for('add_split_day', user_id=user_id) }}" style="display:block; background:#1a1a1a; color:#4da6ff; text-align:center; padding:10px; border-radius:10px; margin-bottom:16px; font-size:0.9rem;">+ Add Split Day</a>
 
 <form class="search-form" action="{{ url_for('search', user_id=user_id) }}" method="get">
   <input type="text" name="q" placeholder="Search exercises..." autocomplete="off">
 </form>
 
-<div class="section-title">Browse by muscle group</div>
 {% if latest_session %}
 <div class="section-title">Latest session</div>
 <a href="{{ url_for('session_detail', user_id=user_id, workout_id=latest_session[0]) }}" class="card" style="display:block; text-decoration:none;">

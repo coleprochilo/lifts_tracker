@@ -13,8 +13,6 @@ def init_db():
         schema = f.read()
     with get_conn() as conn:
         conn.executescript(schema)
-        for split_day in ("S/L", "C/T", "B/B", "Compounds", "misc"):
-            conn.execute("INSERT OR IGNORE INTO split_days (name) VALUES (?)", (split_day,))
         for primary, data in EXERCISE_MAPPING.items():
             conn.execute(
                 "INSERT OR IGNORE INTO exercises (primary_name, muscle_group) VALUES (?, ?)",

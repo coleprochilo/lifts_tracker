@@ -15,14 +15,10 @@
 </script>
 
 <div class="filter-row">
-  <a class="filter-btn {% if not intensity_filter %}active{% endif %}"
-     href="{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id) }}">All</a>
-  <a class="filter-btn {% if intensity_filter == 'light' %}active{% endif %}"
-     href="{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id, intensity='light') }}">Light</a>
-  <a class="filter-btn {% if intensity_filter == 'normal' %}active{% endif %}"
-     href="{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id, intensity='normal') }}">Normal</a>
-  <a class="filter-btn {% if intensity_filter == 'heavy' %}active{% endif %}"
-     href="{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id, intensity='heavy') }}">Heavy</a>
+  <button class="filter-btn {% if not intensity_filter %}active{% endif %}" onclick="location.replace('{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id) }}');">All</button>
+  <button class="filter-btn {% if intensity_filter == 'light' %}active{% endif %}" onclick="location.replace('{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id, intensity='light') }}');">Light</button>
+  <button class="filter-btn {% if intensity_filter == 'normal' %}active{% endif %}" onclick="location.replace('{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id, intensity='normal') }}');">Normal</button>
+  <button class="filter-btn {% if intensity_filter == 'heavy' %}active{% endif %}" onclick="location.replace('{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id, intensity='heavy') }}');">Heavy</button>
 </div>
 
 {% if not history %}

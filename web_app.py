@@ -149,6 +149,21 @@ def session_detail(user_id, workout_id):
                            session=session, instances=instances, instance_sets=instance_sets)
 
 
+@app.route("/user/<int:user_id>/split/add", methods=["GET", "POST"])
+def add_split_day(user_id):
+    with get_conn() as conn:
+        user = conn.execute("SELECT username FROM users WHERE user_id = ?", (user_id,)).fetchone()
+        if not user:
+            return redirect(url_for("index"))
+        if request.method == "POST":
+            name = request.form.get("name", "").strip()
+            if name:
+                conn.execute("INSERT OR IGNORE INTO split_days (name, user_id) VALUES (?, ?)", (name, user_id))
+            return redirect(url_for("user_home", user_id=user_id))
+        splits = [r[0] for r in conn.execute("SELECT name FROM split_days WHERE user_id = ? ORDER BY name", (user_id,)).fetchall()]
+    return render_template("add_split_day.html", user_id=user_id, username=user[0], splits=splits)
+
+
 @app.route("/user/<int:user_id>/session/create", methods=["GET", "POST"])
 def create_session(user_id):
     with get_conn() as conn:
@@ -164,7 +179,7 @@ def create_session(user_id):
                     (user_id, local_date, split_day)
                 )
             return redirect(url_for("user_home", user_id=user_id, local_date=local_date))
-        split_days = conn.execute("SELECT name FROM split_days ORDER BY name").fetchall()
+        split_days = conn.execute("SELECT name FROM split_days WHERE user_id = ? ORDER BY name", (user_id,)).fetchall()
     return render_template("create_session.html", user_id=user_id, username=user[0],
                            split_days=[s[0] for s in split_days])
 
