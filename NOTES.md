@@ -371,6 +371,10 @@ All numeric inputs loop until valid:
   - Password validated client-side (JS blocks submit if mismatch) and server-side (safety net)
   - `+ Create New User` button added to index page
   - To delete a user: run sqlite3 commands manually from terminal — delete from exercise_sets, exercise_instances, workout_sessions, split_days, users in order (see conversation history for full command)
+  - `GET /user/<id>/login` — password entry screen shown when tapping a user on index page
+  - `POST /user/<id>/login` — checks SHA256 hash, redirects to user home on success, re-renders with error on failure. No lockout — unlimited attempts
+  - Tapping a user on index always goes to login first — no persistent session, going back and selecting again re-prompts password
+  - To reset a password: generate SHA256 hash via python3 and run sqlite3 UPDATE on both local and EC2 DBs directly
 
 ## Deployment (EC2)
 - EC2 instance running: `54.85.25.6` (Elastic IP — permanent), instance ID `i-09fcecab3b67d5ba9`, type `t3.micro`

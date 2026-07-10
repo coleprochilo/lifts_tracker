@@ -55,6 +55,20 @@ def index():
     return render_template("index.html", users=users)
 
 
+@app.route("/user/<int:user_id>/login", methods=["GET", "POST"])
+def login(user_id):
+    with get_conn() as conn:
+        user = conn.execute("SELECT username, password_hash FROM users WHERE user_id = ?", (user_id,)).fetchone()
+    if not user:
+        return redirect(url_for("index"))
+    error = None
+    if request.method == "POST":
+        if hashlib.sha256(request.form.get("password", "").encode()).hexdigest() == user[1]:
+            return redirect(url_for("user_home", user_id=user_id))
+        error = "Wrong password, try again."
+    return render_template("login.html", user_id=user_id, username=user[0], error=error)
+
+
 @app.route("/user/<int:user_id>")
 def user_home(user_id):
     with get_conn() as conn:
