@@ -22,16 +22,18 @@
         <input type="number" name="weight" placeholder="Weight (lbs)" step="0.5" min="0" style="flex:1; min-width:0; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
         <input type="number" name="reps" placeholder="Reps" step="0.5" min="0" style="flex:1; min-width:0; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
       </div>
-      <input type="number" name="rest" placeholder="Rest (min)" step="0.5" min="0" style="width:100%; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem; box-sizing:border-box;">
+      <input type="number" name="rest" placeholder="Rest (min) — optional" step="0.5" min="0" style="width:100%; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem; box-sizing:border-box;">
     </div>
   </div>
 
   <button type="button" id="add-set-btn" style="width:100%; background:#1a1a1a; color:#4da6ff; border:none; padding:12px; border-radius:10px; font-size:0.95rem; cursor:pointer; margin-bottom:16px;">+ Add Set</button>
 
   <div class="section-title">Notes</div>
-  <input type="text" name="notes" placeholder="Optional notes..." style="margin-bottom:16px;">
+  <input type="text" name="notes" placeholder="Optional" style="margin-bottom:8px;">
 
-  <button type="submit" style="width:100%; background:#2979ff; color:#fff; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer;">Commit Instance</button>
+  <div id="form-error" style="color:#ff6b6b; font-size:0.85rem; margin-bottom:8px; display:none;">Fill out all fields before committing.</div>
+  <button type="button" onclick="submitForm()" style="width:100%; background:#2979ff; color:#fff; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer; margin-bottom:10px;">Commit Instance</button>
+  <button type="button" onclick="location.replace('{{ url_for('muscle_group', user_id=user_id, group=muscle_group) }}')" style="width:100%; background:#1a1a1a; color:#ff6b6b; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer;">Cancel</button>
 </form>
 
 <script>
@@ -46,6 +48,14 @@
   });
 
   let setCount = 1;
+
+  function updateRestPlaceholders() {
+    const blocks = document.querySelectorAll('.set-block');
+    blocks.forEach((block, i) => {
+      block.querySelector('input[name=rest]').placeholder = i === blocks.length - 1 ? 'Rest (min) — optional' : 'Rest (min)';
+    });
+  }
+
   document.getElementById('add-set-btn').addEventListener('click', () => {
     setCount++;
     const container = document.getElementById('sets-container');
@@ -53,16 +63,34 @@
     title.className = 'section-title';
     title.textContent = `Set ${setCount}`;
     const block = document.createElement('div');
+    block.className = 'set-block';
     block.style = 'background:#1a1a1a; border-radius:10px; padding:14px; margin-bottom:10px;';
     block.innerHTML = `
       <div style="display:flex; gap:8px; margin-bottom:8px;">
         <input type="number" name="weight" placeholder="Weight (lbs)" step="0.5" min="0" style="flex:1; min-width:0; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
         <input type="number" name="reps" placeholder="Reps" step="0.5" min="0" style="flex:1; min-width:0; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
       </div>
-      <input type="number" name="rest" placeholder="Rest (min)" step="0.5" min="0" style="width:100%; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem; box-sizing:border-box;">
+      <input type="number" name="rest" placeholder="Rest (min) — optional" step="0.5" min="0" style="width:100%; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem; box-sizing:border-box;">
     `;
     container.appendChild(title);
     container.appendChild(block);
+    updateRestPlaceholders();
   });
+
+  function submitForm() {
+    const blocks = document.querySelectorAll('.set-block');
+    const lastIdx = blocks.length - 1;
+    for (let i = 0; i < blocks.length; i++) {
+      const weight = blocks[i].querySelector('input[name=weight]').value.trim();
+      const reps = blocks[i].querySelector('input[name=reps]').value.trim();
+      const rest = blocks[i].querySelector('input[name=rest]').value.trim();
+      if (!weight || !reps || (i < lastIdx && !rest)) {
+        document.getElementById('form-error').style.display = 'block';
+        return;
+      }
+    }
+    document.getElementById('form-error').style.display = 'none';
+    document.getElementById('log-form').submit();
+  }
 </script>
 {% endblock %}

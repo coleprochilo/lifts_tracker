@@ -237,7 +237,7 @@ def log_instance(user_id, exercise_id):
             flash("No active session for today. Create a session first.")
             return redirect(url_for("exercise_history", user_id=user_id, exercise_id=exercise_id))
         workout_id = session[0]
-        exercise = conn.execute("SELECT primary_name FROM exercises WHERE exercise_id = ?", (exercise_id,)).fetchone()
+        exercise = conn.execute("SELECT primary_name, muscle_group FROM exercises WHERE exercise_id = ?", (exercise_id,)).fetchone()
         if not exercise:
             return redirect(url_for("user_home", user_id=user_id))
 
@@ -287,7 +287,7 @@ def log_instance(user_id, exercise_id):
 
     return render_template("log_instance.html", user_id=user_id, username=user[0],
                            exercise_id=exercise_id, primary_name=exercise[0],
-                           local_date=local_date)
+                           muscle_group=exercise[1], local_date=local_date)
 
 
 @app.route("/user/<int:user_id>/search")
