@@ -233,7 +233,20 @@ if __name__ == "__main__":
     ec2 = "ec2-user@54.85.25.6"
     db_path = "lifts_tracker.db"
 
-    print("Pulling DB from EC2...")
+    print("\n⚠️  You are about to import from the CSV into the EC2 database.")
+    print("    EC2 is the source of truth. The DB will be pulled from EC2 first.")
+    print("    Only NEW sessions/instances from the CSV will be added — nothing will be overwritten.")
+    c1 = input("\nAre you sure you want to proceed? (yes/no): ").strip().lower()
+    if c1 != "yes":
+        print("Import cancelled.")
+        exit(0)
+
+    c2 = input("\nDouble check: any sessions you logged through the app will NOT be deleted. Type 'confirmed' to continue: ").strip().lower()
+    if c2 != "confirmed":
+        print("Import cancelled.")
+        exit(0)
+
+    print("\nPulling DB from EC2...")
     pull = subprocess.run([
         "scp", "-i", key,
         f"{ec2}:~/app/{db_path}",
