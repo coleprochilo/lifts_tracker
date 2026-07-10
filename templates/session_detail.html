@@ -5,6 +5,14 @@
 <h2>{{ session[1] }}</h2>
 <div class="username-tag">{{ username.title() }}</div>
 
+{% if instances %}
+<button onclick="copyForCole()" style="width:100%; background:#1a1a1a; color:#4da6ff; border:none; padding:12px; border-radius:10px; font-size:0.95rem; font-weight:600; cursor:pointer; margin-bottom:16px;">Copy paste for cole</button>
+<div id="copy-confirm" style="color:#6fcf6f; font-size:0.85rem; margin-bottom:12px; display:none;">Copied!</div>
+{% endif %}
+
+<div id="export-data" style="display:none;">{% for inst in instances %}{% set s = instance_sets[inst[4]] %}{{ inst[1] }}	{{ s.weights }}	{{ s.reps }}	{{ s.rest_export }}
+{% endfor %}</div>
+
 {% if not instances %}
   <p style="color:#666;">No instances logged.</p>
 {% else %}
@@ -25,4 +33,28 @@
   </div>
   {% endfor %}
 {% endif %}
+<script>
+function copyForCole() {
+  const text = document.getElementById('export-data').innerText.trimEnd();
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(showConfirm);
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showConfirm();
+  }
+}
+function showConfirm() {
+  const el = document.getElementById('copy-confirm');
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 2000);
+}
+</script>
 {% endblock %}

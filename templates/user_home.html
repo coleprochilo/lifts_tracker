@@ -2,6 +2,7 @@
 {% block content %}
 <a class="back-link" href="{{ url_for('index') }}">← Users</a>
 <h1>{{ username.title() }}</h1>
+<div class="username-tag">{{ session_count }} sessions recorded</div>
 
 {% if today_session %}
   <div style="background:#1a2a1a; border-radius:10px; padding:12px; margin-bottom:16px; font-size:0.9rem; color:#6fcf6f;">
@@ -9,14 +10,15 @@
   </div>
 {% endif %}
 <a id="create-btn" href="{{ url_for('create_session', user_id=user_id) }}" style="display:block; background:#2979ff; color:#fff; text-align:center; padding:12px; border-radius:10px; margin-bottom:8px; font-size:1rem; font-weight:600;">+ Create Session</a>
-<a href="{{ url_for('add_split_day', user_id=user_id) }}" style="display:block; background:#1a1a1a; color:#4da6ff; text-align:center; padding:10px; border-radius:10px; margin-bottom:16px; font-size:0.9rem;">+ Add Split Day</a>
+<a href="{{ url_for('add_split_day', user_id=user_id) }}" style="display:block; background:#1a1a1a; color:#4da6ff; text-align:center; padding:10px; border-radius:10px; margin-bottom:8px; font-size:0.9rem;">+ Add Split Day</a>
+<a href="{{ url_for('all_sessions', user_id=user_id) }}" style="display:block; background:#1a1a1a; color:#4da6ff; text-align:center; padding:10px; border-radius:10px; margin-bottom:16px; font-size:0.9rem;">View Sessions</a>
 
 <form class="search-form" action="{{ url_for('search', user_id=user_id) }}" method="get">
   <input type="text" name="q" placeholder="Search exercises..." autocomplete="off">
 </form>
 
 {% if latest_session %}
-<div class="section-title">Latest session</div>
+<div class="section-title">Latest session <span style="font-size:0.56rem;">·&nbsp; {{ split_counts.get(latest_session[2], 0) }} {{ latest_session[2] }} sessions recorded</span></div>
 <a href="{{ url_for('session_detail', user_id=user_id, workout_id=latest_session[0]) }}" class="card" style="display:block; text-decoration:none;">
   <div style="color:#f0f0f0; font-size:1rem;">{{ latest_session[2] }}</div>
   <div style="color:#888; font-size:0.8rem; margin-top:4px;">{{ latest_session[1] }}</div>
@@ -24,7 +26,7 @@
 {% endif %}
 
 {% if latest_split_session %}
-<div class="section-title">Last {{ today_session[1] }} session</div>
+<div class="section-title">Last {{ today_session[1] }} session <span style="font-size:0.56rem;">·&nbsp; {{ split_counts.get(latest_split_session[2], 0) }} {{ latest_split_session[2] }} sessions recorded</span></div>
 <a href="{{ url_for('session_detail', user_id=user_id, workout_id=latest_split_session[0]) }}" class="card" style="display:block; text-decoration:none;">
   <div style="color:#f0f0f0; font-size:1rem;">{{ latest_split_session[2] }}</div>
   <div style="color:#888; font-size:0.8rem; margin-top:4px;">{{ latest_split_session[1] }}</div>

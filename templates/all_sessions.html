@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<a class="back-link" href="{{ url_for('user_home', user_id=user_id) }}">← {{ username.title() }}</a>
+<h1>Sessions</h1>
+<div class="username-tag">{{ username.title() }}</div>
+
+<select onchange="location.replace(this.value)" style="width:100%; padding:12px; border-radius:8px; border:none; background:#1a1a1a; color:#f0f0f0; font-size:1rem; margin-bottom:16px;">
+  <option value="{{ url_for('all_sessions', user_id=user_id) }}" {% if not split_filter %}selected{% endif %}>All split days</option>
+  {% for s in split_days %}
+  <option value="{{ url_for('all_sessions', user_id=user_id, split=s) }}" {% if split_filter == s %}selected{% endif %}>{{ s }}</option>
+  {% endfor %}
+</select>
+
+<div style="font-size:0.8rem; color:#666; margin-bottom:12px;">{{ sessions|length }} session{{ 's' if sessions|length != 1 else '' }}</div>
+
+{% if not sessions %}
+  <p style="color:#666;">No sessions found.</p>
+{% else %}
+  {% for session in sessions %}
+  <a href="{{ url_for('session_detail', user_id=user_id, workout_id=session[0]) }}" class="card" style="display:block; text-decoration:none;">
+    <div style="color:#f0f0f0; font-size:1rem;">{{ session[2] }}</div>
+    <div style="color:#888; font-size:0.8rem; margin-top:4px;">{{ session[1] }}</div>
+  </a>
+  {% endfor %}
+{% endif %}
+{% endblock %}

@@ -333,7 +333,11 @@ All numeric inputs loop until valid:
   - `GET /user/<id>/muscle/<group>` — exercise list for that group
   - `GET /user/<id>/exercise/<id>` — full history with light/normal/heavy filter, shows Add Instance button if session active today
   - `GET /user/<id>/search?q=` — search by primary name or alias
-  - `GET /user/<id>/session/<id>` — session detail view showing all instances + sets for that session
+  - `GET /user/<id>/session/<id>` — session detail view showing all instances + sets for that session. "Copy paste for cole" button copies all exercise rows as tab-separated text ready to paste into Excel. Format: `exercise name\tweights\treps\trest`. Weights use `bw` for 0. Rest is comma-separated inter-set rests. Uses `execCommand` fallback for HTTP compatibility.
+  - `GET /user/<id>/sessions` — all sessions page with split day dropdown filter and session count that updates with filter. Each session tappable to session detail. `View Sessions` button on user home.
+  - `GET /user/<id>/muscle/<group>/new` — create new exercise form, muscle group pre-filled, required field validation, Cancel uses `location.replace()`, no back button. `+ New Exercise` button on muscle group page.
+  - User home shows total session count below username
+  - Latest session and last split session section titles show split day session count in smaller text
   - `GET /user/<id>/session/create` — split day radio picker
   - `POST /user/<id>/session/create` — creates session with today's date + chosen split day, redirects to user home
   - `GET /user/<id>/exercise/<id>/log` — log instance form (intensity picker, dynamic set rows, notes)

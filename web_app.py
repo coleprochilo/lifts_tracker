@@ -69,6 +69,31 @@ def login(user_id):
     return render_template("login.html", user_id=user_id, username=user[0], error=error)
 
 
+@app.route("/user/<int:user_id>/sessions")
+def all_sessions(user_id):
+    with get_conn() as conn:
+        user = conn.execute("SELECT username FROM users WHERE user_id = ?", (user_id,)).fetchone()
+        if not user:
+            return redirect(url_for("index"))
+        split_filter = request.args.get("split")
+        split_days = [r[0] for r in conn.execute(
+            "SELECT DISTINCT split_day FROM workout_sessions WHERE user_id = ? ORDER BY split_day",
+            (user_id,)
+        ).fetchall()]
+        if split_filter:
+            sessions = conn.execute(
+                "SELECT workout_id, date, split_day FROM workout_sessions WHERE user_id = ? AND split_day = ? ORDER BY workout_id DESC",
+                (user_id, split_filter)
+            ).fetchall()
+        else:
+            sessions = conn.execute(
+                "SELECT workout_id, date, split_day FROM workout_sessions WHERE user_id = ? ORDER BY workout_id DESC",
+                (user_id,)
+            ).fetchall()
+    return render_template("all_sessions.html", user_id=user_id, username=user[0],
+                           sessions=sessions, split_days=split_days, split_filter=split_filter)
+
+
 @app.route("/user/<int:user_id>")
 def user_home(user_id):
     with get_conn() as conn:
@@ -91,10 +116,18 @@ def user_home(user_id):
             "SELECT workout_id, date, split_day FROM workout_sessions WHERE user_id = ? AND split_day = ? AND workout_id != ? ORDER BY workout_id DESC LIMIT 1",
             (user_id, today_session[1], today_session[0])
         ).fetchone() if today_session else None
+        split_counts = {r[0]: r[1] for r in conn.execute(
+            "SELECT split_day, COUNT(*) FROM workout_sessions WHERE user_id = ? GROUP BY split_day",
+            (user_id,)
+        ).fetchall()}
+        session_count = conn.execute(
+            "SELECT COUNT(*) FROM workout_sessions WHERE user_id = ?", (user_id,)
+        ).fetchone()[0]
     return render_template("user_home.html", user_id=user_id, username=user[0],
                            muscle_groups=[m[0] for m in muscle_groups],
                            today_session=today_session, today=today,
-                           latest_session=latest_session, latest_split_session=latest_split_session)
+                           latest_session=latest_session, latest_split_session=latest_split_session,
+                           session_count=session_count, split_counts=split_counts)
 
 
 @app.route("/user/<int:user_id>/muscle/<group>/new", methods=["GET", "POST"])
@@ -180,7 +213,10 @@ def session_detail(user_id, workout_id):
                 return int(v) if v == int(v) else v
             instance_sets[inst[4]] = {
                 "sets_str": ", ".join(f"{fmt(s[0])}x{fmt(s[1])}" for s in sets),
-                "rest_str": ", ".join(str(fmt(s[2])) for s in sets[:-1] if s[2] is not None) or None
+                "rest_str": ", ".join(str(fmt(s[2])) for s in sets[:-1] if s[2] is not None) or None,
+                "weights": ", ".join("bw" if s[0] == 0 else str(fmt(s[0])) for s in sets),
+                "reps": ", ".join(str(fmt(s[1])) for s in sets),
+                "rest_export": ", ".join(str(fmt(s[2])) for s in sets[:-1] if s[2] is not None) or ""
             }
     return render_template("session_detail.html", user_id=user_id, username=user[0],
                            session=session, instances=instances, instance_sets=instance_sets)
