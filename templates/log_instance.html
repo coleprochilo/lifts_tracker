@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-<a class="back-link" href="{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id) }}">← Back</a>
 <h1>{{ primary_name.title() }}</h1>
 <div class="username-tag">{{ username.title() }}</div>
 
@@ -34,6 +33,20 @@
   <div id="form-error" style="color:#ff6b6b; font-size:0.85rem; margin-bottom:8px; display:none;">Fill out all fields before committing.</div>
   <button type="button" onclick="submitForm()" style="width:100%; background:#2979ff; color:#fff; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer; margin-bottom:10px;">Commit Instance</button>
   <button type="button" onclick="location.replace('{{ url_for('muscle_group', user_id=user_id, group=muscle_group) }}')" style="width:100%; background:#1a1a1a; color:#ff6b6b; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer;">Cancel</button>
+</form>
+
+{% if history %}
+<div class="section-title" style="margin-top:24px;">Recent history</div>
+{% for entry in history | reverse %}
+<div class="card">
+  <div class="date-label">{{ entry.date }} &nbsp;·&nbsp; #{{ entry.workout_index }}</div>
+  <div class="set-row">{{ entry.sets }}</div>
+  {% if entry.rest %}<div class="meta">rest: {{ entry.rest }} min</div>{% endif %}
+  {% if entry.notes %}<div class="meta">notes: {{ entry.notes }}</div>{% endif %}
+  <div style="margin-top:6px;"><span class="badge {{ entry.intensity }}">{{ entry.intensity }}</span></div>
+</div>
+{% endfor %}
+{% endif %}
 </form>
 
 <script>

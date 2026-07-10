@@ -355,8 +355,10 @@ All numeric inputs loop until valid:
   - Session detail view shows all instances with sets, rest, notes, and intensity badge
   - After committing an instance, redirects to user home (not exercise history) to avoid back button loop
   - Cancel on log instance page uses `location.replace()` to muscle group page — skips log instance in history stack so back button from exercise history goes cleanly to muscle group
+  - Back button removed from log instance page — Cancel button handles navigation
   - Add Instance button uses `location.replace()` to avoid pushing exercise history onto stack
   - Weight and reps required on all sets before commit — inline error message shown if missing. Rest required on all sets except the last. Notes and last set rest are optional. Rest placeholder dynamically updates to show "optional" only on the last set, updates when new sets are added.
+  - Last 8 most recent instances of the exercise shown below Cancel button on log instance page so user can reference past weights while logging
   - Multiple sessions per day allowed — instances always attach to most recent session (`ORDER BY workout_id DESC LIMIT 1`)
   - `today_session` on user home detected via `local_date` query param (JS sets it from `new Date().toLocaleDateString('en-CA')`)
   - If `local_date` not in URL on page load, JS reloads the page with it so server renders correct banner

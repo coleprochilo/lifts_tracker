@@ -287,7 +287,8 @@ def log_instance(user_id, exercise_id):
 
     return render_template("log_instance.html", user_id=user_id, username=user[0],
                            exercise_id=exercise_id, primary_name=exercise[0],
-                           muscle_group=exercise[1], local_date=local_date)
+                           muscle_group=exercise[1], local_date=local_date,
+                           history=get_exercise_history(exercise_id, user_id)[1][-8:])
 
 
 @app.route("/user/<int:user_id>/search")
