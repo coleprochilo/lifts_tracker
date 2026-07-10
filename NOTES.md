@@ -366,6 +366,11 @@ All numeric inputs loop until valid:
   - Back loop when pressing back from log instance without committing is a known non-issue — unfixable without server-side session state, doesn't affect normal flow
   - `split_days` table has `user_id` column — each user owns their own split days. Existing rows migrated via `ALTER TABLE` + `UPDATE` (not a wipe/reseed). New users prompted for split days on CLI registration via `_setup_split_days()`. Web app has "+ Add Split Day" button on user home linking to `/user/<id>/split/add`
   - All split day queries filter by `user_id` in both `lifts_tracker.py` and `web_app.py`
+  - `GET /create-user` — form with username, password, confirm password, and dynamic split day adding
+  - `POST /create-user` — inserts user with SHA256-hashed password and today's date, inserts split days, redirects to new user's home
+  - Password validated client-side (JS blocks submit if mismatch) and server-side (safety net)
+  - `+ Create New User` button added to index page
+  - To delete a user: run sqlite3 commands manually from terminal — delete from exercise_sets, exercise_instances, workout_sessions, split_days, users in order (see conversation history for full command)
 
 ## Deployment (EC2)
 - EC2 instance running: `54.85.25.6` (Elastic IP — permanent), instance ID `i-09fcecab3b67d5ba9`, type `t3.micro`

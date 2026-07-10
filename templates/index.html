@@ -3,6 +3,8 @@
 <h1>Lifts Tracker</h1>
 <h2>Who's lifting?</h2>
 
+<a href="{{ url_for('create_user') }}" style="display:block; text-align:center; background:#1a1a1a; color:#4da6ff; border-radius:10px; padding:14px; margin-bottom:16px; font-size:0.95rem; font-weight:600; text-decoration:none;">+ Create New User</a>
+
 {% for user_id, username in users %}
 <div class="card">
   <a href="{{ url_for('user_home', user_id=user_id) }}">{{ username.title() }}</a>

@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from db import get_conn
 from datetime import date
+import hashlib
 
 app = Flask(__name__)
 app.secret_key = "lifts-tracker-secret"
@@ -147,6 +148,28 @@ def session_detail(user_id, workout_id):
             }
     return render_template("session_detail.html", user_id=user_id, username=user[0],
                            session=session, instances=instances, instance_sets=instance_sets)
+
+
+@app.route("/create-user", methods=["GET", "POST"])
+def create_user():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        confirm = request.form.get("confirm", "")
+        splits = request.form.getlist("splits")
+        if not username or password != confirm:
+            return render_template("create_user.html", splits=splits)
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        with get_conn() as conn:
+            conn.execute("INSERT INTO users (username, password_hash, date_created) VALUES (?, ?, ?)",
+                         (username, password_hash, date.today().isoformat()))
+            user_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+            for s in splits:
+                s = s.strip()
+                if s:
+                    conn.execute("INSERT OR IGNORE INTO split_days (name, user_id) VALUES (?, ?)", (s, user_id))
+        return redirect(url_for("user_home", user_id=user_id))
+    return render_template("create_user.html")
 
 
 @app.route("/user/<int:user_id>/split/add", methods=["GET", "POST"])
