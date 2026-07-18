@@ -78,6 +78,7 @@ last time and improve each session. Eventually will be expanded to a mobile app.
 - `date` TEXT (YYYY-MM-DD)
 - `split_day` TEXT FK → split_days(name)
 - `ended` INTEGER DEFAULT 0 — set to 1 when user taps "End Session", removes active banner without changing date
+- `notes` TEXT nullable — optional session-level notes entered via End Session modal
 
 ### exercise_instances (user-specific)
 - `instance_id` INTEGER PK AUTOINCREMENT
@@ -378,7 +379,9 @@ All numeric inputs loop until valid:
   - Session banner and Create Session button both always visible — banner only appears when session exists, button always shown
   - Flash message shown on exercise history page if Add Instance tapped with no active session
   - "End Session" button shown below active session banner — sets `ended = 1` on the session, removes banner, session appears as latest session. Date is never changed — session keeps the date it was created on
+  - Tapping End Session opens a modal with an optional notes textarea — submitting saves notes to `workout_sessions.notes` and ends the session. Cancel dismisses without ending.
   - `today_session` query filters `ended = 0` so ended sessions never re-appear as active
+  - Session notes shown on session detail below the copy paste button — only renders if notes exist
   - `create_session` POST redirects to `user_home` with `local_date` param so banner renders correctly immediately
   - Filter buttons that reload the same page with different params should use `onclick="location.replace('...')"` as `<button>` instead of `<a>` tags — prevents history stack pollution, back button skips over them cleanly. Apply this pattern to any filter/tab UI on any page.
   - Back loop when pressing back from log instance without committing is a known non-issue — unfixable without server-side session state, doesn't affect normal flow

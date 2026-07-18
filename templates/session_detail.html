@@ -10,6 +10,10 @@
 <div id="copy-confirm" style="color:#6fcf6f; font-size:0.85rem; margin-bottom:12px; display:none;">Copied!</div>
 {% endif %}
 
+{% if session[3] %}
+<div style="background:#1a1a1a; border-radius:10px; padding:12px; margin-bottom:16px; font-size:0.9rem; color:#aaa;">session notes: {{ session[3] }}</div>
+{% endif %}
+
 <div id="export-data" style="display:none;">{% for inst in instances %}{% set s = instance_sets[inst[4]] %}{{ inst[1] }}	{{ s.weights }}	{{ s.reps }}	{{ s.rest_export }}
 {% endfor %}</div>
 

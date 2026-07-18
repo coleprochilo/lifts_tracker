@@ -192,7 +192,7 @@ def session_detail(user_id, workout_id):
     with get_conn() as conn:
         user = conn.execute("SELECT username FROM users WHERE user_id = ?", (user_id,)).fetchone()
         session = conn.execute(
-            "SELECT workout_id, date, split_day FROM workout_sessions WHERE workout_id = ? AND user_id = ?",
+            "SELECT workout_id, date, split_day, notes FROM workout_sessions WHERE workout_id = ? AND user_id = ?",
             (workout_id, user_id)
         ).fetchone()
         if not user or not session:
@@ -263,8 +263,9 @@ def add_split_day(user_id):
 
 @app.route("/user/<int:user_id>/session/<int:workout_id>/end", methods=["POST"])
 def end_session(user_id, workout_id):
+    notes = request.form.get("notes", "").strip() or None
     with get_conn() as conn:
-        conn.execute("UPDATE workout_sessions SET ended = 1 WHERE workout_id = ? AND user_id = ?", (workout_id, user_id))
+        conn.execute("UPDATE workout_sessions SET ended = 1, notes = ? WHERE workout_id = ? AND user_id = ?", (notes, workout_id, user_id))
     return redirect(url_for("user_home", user_id=user_id))
 
 

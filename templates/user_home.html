@@ -8,9 +8,18 @@
   <div style="background:#1a2a1a; border-radius:10px; padding:12px; margin-bottom:8px; font-size:0.9rem; color:#6fcf6f;">
     Session active · {{ today_session[1] }}
   </div>
-  <form method="post" action="{{ url_for('end_session', user_id=user_id, workout_id=today_session[0]) }}">
-    <button type="submit" style="width:100%; background:#1a2a1a; color:#e05555; border:1px solid #e05555; border-radius:10px; padding:10px; font-size:0.9rem; margin-bottom:16px; cursor:pointer;">End Session</button>
-  </form>
+  <button onclick="document.getElementById('end-modal').style.display='flex'" style="width:100%; background:#1a2a1a; color:#e05555; border:1px solid #e05555; border-radius:10px; padding:10px; font-size:0.9rem; margin-bottom:16px; cursor:pointer;">End Session</button>
+
+  <div id="end-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; padding:24px;">
+    <div style="background:#1a1a1a; border-radius:12px; padding:20px; width:100%; max-width:400px;">
+      <div style="color:#f0f0f0; font-size:1rem; margin-bottom:12px;">Any final notes for this session?</div>
+      <form method="post" action="{{ url_for('end_session', user_id=user_id, workout_id=today_session[0]) }}">
+        <textarea name="notes" placeholder="Optional..." style="width:100%; background:#111; color:#f0f0f0; border:1px solid #333; border-radius:8px; padding:10px; font-size:0.9rem; min-height:80px; box-sizing:border-box; resize:vertical;"></textarea>
+        <button type="submit" style="width:100%; background:#2979ff; color:#fff; border:none; border-radius:8px; padding:12px; font-size:1rem; font-weight:600; margin-top:10px; cursor:pointer;">Submit</button>
+        <button type="button" onclick="document.getElementById('end-modal').style.display='none'" style="width:100%; background:transparent; color:#888; border:none; padding:10px; font-size:0.9rem; cursor:pointer;">Cancel</button>
+      </form>
+    </div>
+  </div>
 {% endif %}
 <a id="create-btn" href="{{ url_for('create_session', user_id=user_id) }}" style="display:block; background:#2979ff; color:#fff; text-align:center; padding:12px; border-radius:10px; margin-bottom:8px; font-size:1rem; font-weight:600;">+ Create Session</a>
 <a href="{{ url_for('add_split_day', user_id=user_id) }}" style="display:block; background:#1a1a1a; color:#4da6ff; text-align:center; padding:10px; border-radius:10px; margin-bottom:8px; font-size:0.9rem;">+ Add Split Day</a>

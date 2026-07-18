@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS workout_sessions (
     user_id       INTEGER NOT NULL REFERENCES users(user_id),
     date          TEXT NOT NULL,
     split_day     TEXT REFERENCES split_days(name),
-    ended         INTEGER DEFAULT 0
+    ended         INTEGER DEFAULT 0,
+    notes         TEXT
 );
 
 CREATE TABLE IF NOT EXISTS exercise_instances (
