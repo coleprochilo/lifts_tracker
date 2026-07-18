@@ -125,7 +125,7 @@ def user_home(user_id):
             "SELECT COUNT(*) FROM workout_sessions WHERE user_id = ?", (user_id,)
         ).fetchone()[0]
     return render_template("user_home.html", user_id=user_id, username=user[0],
-                           muscle_groups=[m[0] for m in muscle_groups],
+                           muscle_groups=muscle_groups,
                            today_session=today_session, today=today,
                            latest_session=latest_session, latest_split_session=latest_split_session,
                            session_count=session_count, split_counts=split_counts)
