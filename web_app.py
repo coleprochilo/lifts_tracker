@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from db import get_conn
 from datetime import date
 import hashlib
+from exercise_mapping import VALID_MUSCLE_GROUPS
 
 app = Flask(__name__)
 app.secret_key = "lifts-tracker-secret"
@@ -14,7 +15,7 @@ def _fmt_weight(w):
 def get_exercise_history(exercise_id, user_id):
     with get_conn() as conn:
         primary_name = conn.execute(
-            "SELECT primary_name FROM exercises WHERE exercise_id = ?", (exercise_id,)
+            "SELECT primary_name FROM exercises WHERE exercise_id = ? AND user_id = ?", (exercise_id, user_id)
         ).fetchone()[0]
         rows = conn.execute("""
             SELECT ei.instance_id, ws.date, ei.intensity, ei.workout_index, ei.notes,
@@ -102,9 +103,7 @@ def user_home(user_id):
         user = conn.execute("SELECT username FROM users WHERE user_id = ?", (user_id,)).fetchone()
         if not user:
             return redirect(url_for("index"))
-        muscle_groups = conn.execute(
-            "SELECT DISTINCT muscle_group FROM exercises ORDER BY muscle_group"
-        ).fetchall()
+        muscle_groups = VALID_MUSCLE_GROUPS
         today = request.args.get("local_date") or date.today().isoformat()
         today_session = conn.execute(
             "SELECT workout_id, split_day FROM workout_sessions WHERE user_id = ? AND date = ? ORDER BY workout_id DESC LIMIT 1",
@@ -138,12 +137,12 @@ def create_exercise(user_id, group):
         user = conn.execute("SELECT username FROM users WHERE user_id = ?", (user_id,)).fetchone()
         if not user:
             return redirect(url_for("index"))
-        muscle_groups = [r[0] for r in conn.execute("SELECT DISTINCT muscle_group FROM exercises ORDER BY muscle_group").fetchall()]
+        muscle_groups = list(VALID_MUSCLE_GROUPS)
         if request.method == "POST":
             primary_name = request.form.get("primary_name", "").strip()
             muscle_group = request.form.get("muscle_group", "").strip()
             if primary_name and muscle_group:
-                conn.execute("INSERT OR IGNORE INTO exercises (primary_name, muscle_group) VALUES (?, ?)", (primary_name, muscle_group))
+                conn.execute("INSERT INTO exercises (primary_name, muscle_group, user_id) VALUES (?, ?, ?)", (primary_name, muscle_group, user_id))
             return redirect(url_for("muscle_group", user_id=user_id, group=muscle_group or group))
     return render_template("create_exercise.html", user_id=user_id, username=user[0],
                            group=group, muscle_groups=muscle_groups)
@@ -154,8 +153,8 @@ def muscle_group(user_id, group):
     with get_conn() as conn:
         user = conn.execute("SELECT username FROM users WHERE user_id = ?", (user_id,)).fetchone()
         exercises = conn.execute(
-            "SELECT exercise_id, primary_name FROM exercises WHERE muscle_group = ? ORDER BY primary_name",
-            (group,)
+            "SELECT exercise_id, primary_name FROM exercises WHERE muscle_group = ? AND user_id = ? ORDER BY primary_name",
+            (group, user_id)
         ).fetchall()
     return render_template("muscle_group.html", user_id=user_id, username=user[0],
                            group=group, exercises=exercises)
@@ -297,7 +296,7 @@ def log_instance(user_id, exercise_id):
             flash("No active session for today. Create a session first.")
             return redirect(url_for("exercise_history", user_id=user_id, exercise_id=exercise_id))
         workout_id = session[0]
-        exercise = conn.execute("SELECT primary_name, muscle_group FROM exercises WHERE exercise_id = ?", (exercise_id,)).fetchone()
+        exercise = conn.execute("SELECT primary_name, muscle_group FROM exercises WHERE exercise_id = ? AND user_id = ?", (exercise_id, user_id)).fetchone()
         if not exercise:
             return redirect(url_for("user_home", user_id=user_id))
 
@@ -361,9 +360,9 @@ def search(user_id):
             results = conn.execute("""
                 SELECT DISTINCT e.exercise_id, e.primary_name FROM exercises e
                 LEFT JOIN exercise_aliases ea ON e.exercise_id = ea.exercise_id
-                WHERE e.primary_name LIKE ? OR ea.alias LIKE ?
+                WHERE (e.primary_name LIKE ? OR ea.alias LIKE ?) AND e.user_id = ?
                 ORDER BY e.primary_name
-            """, (f"%{query}%", f"%{query}%")).fetchall()
+            """, (f"%{query}%", f"%{query}%", user_id)).fetchall()
     return render_template("search.html", user_id=user_id, username=user[0],
                            query=query, results=results)
 

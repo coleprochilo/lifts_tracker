@@ -53,10 +53,11 @@ last time and improve each session. Eventually will be expanded to a mobile app.
 - Seeded with: `S/L`, `C/T`, `B/B`
 - User can add new values via "Manage split days" menu option
 
-### exercises (GLOBAL — shared across all users)
+### exercises (per-user)
 - `exercise_id` INTEGER PK AUTOINCREMENT
-- `primary_name` TEXT UNIQUE
+- `primary_name` TEXT
 - `muscle_group` TEXT — one of `legs`, `back`, `chest`, `shoulders`, `biceps`, `triceps`
+- `user_id` INTEGER FK → users
 
 ### exercise_aliases
 - `alias_id` INTEGER PK AUTOINCREMENT
@@ -103,10 +104,12 @@ last time and improve each session. Eventually will be expanded to a mobile app.
 - UUIDs were considered but rejected — single local DB, no collision risk
 - If ever moving to distributed/multi-device, switch to UUIDs at that point
 
-### Global Exercises List
-- Exercises are NOT owned by users — they are global
-- Users interact with exercises only through `exercise_instances`
-- This allows all users to share the same exercise library
+### Per-User Exercises
+- Exercises are owned by users — each user has their own list
+- Two users can have the same exercise name — no UNIQUE constraint on `primary_name`
+- New users start with no exercises — they add their own via `+ New Exercise` on the muscle group page
+- All existing exercises assigned to Cole (user_id 1) during migration
+- Muscle groups are hardcoded from `VALID_MUSCLE_GROUPS` in `web_app.py` — not derived from the exercises table, so all users always see all muscle groups
 
 ### Lazy Session Creation
 - `create_workout()` returns a pending dict `{user_id, date, split_day, workout_id: None}`

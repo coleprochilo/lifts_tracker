@@ -72,17 +72,17 @@ def get_user_id(conn):
     return row[0]
 
 
-def resolve_exercise(conn, name):
+def resolve_exercise(conn, name, user_id):
     name = name.lower().strip()
-    row = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (name,)).fetchone()
+    row = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ? AND user_id = ?", (name, user_id)).fetchone()
     if row:
         return row[0]
-    row = conn.execute("SELECT exercise_id FROM exercise_aliases WHERE alias = ?", (name,)).fetchone()
+    row = conn.execute("SELECT ea.exercise_id FROM exercise_aliases ea JOIN exercises e ON e.exercise_id = ea.exercise_id WHERE ea.alias = ? AND e.user_id = ?", (name, user_id)).fetchone()
     if row:
         return row[0]
 
     # not found — prompt user
-    all_exercises = conn.execute("SELECT primary_name, muscle_group FROM exercises ORDER BY muscle_group, primary_name").fetchall()
+    all_exercises = conn.execute("SELECT primary_name, muscle_group FROM exercises WHERE user_id = ? ORDER BY muscle_group, primary_name", (user_id,)).fetchall()
     current_group = None
     for primary, muscle_group in all_exercises:
         if muscle_group != current_group:
@@ -94,20 +94,20 @@ def resolve_exercise(conn, name):
     choice = input("\n[n] new exercise  [a] add as alias: ").strip().lower().replace("\r", "")
     if choice == "a":
         primary = input("Primary name to alias to: ").strip().lower().replace("\r", "")
-        row = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (primary,)).fetchone()
+        row = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ? AND user_id = ?", (primary, user_id)).fetchone()
         if not row:
             print(f"'{primary}' not found, creating '{name}' as new primary instead.")
             muscle_group = _prompt_muscle_group()
-            conn.execute("INSERT INTO exercises (primary_name, muscle_group) VALUES (?, ?)", (name, muscle_group))
-            return conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (name,)).fetchone()[0]
+            conn.execute("INSERT INTO exercises (primary_name, muscle_group, user_id) VALUES (?, ?, ?)", (name, muscle_group, user_id))
+            return conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ? AND user_id = ?", (name, user_id)).fetchone()[0]
         conn.execute("INSERT INTO exercise_aliases (exercise_id, alias) VALUES (?, ?)", (row[0], name))
         print(f"Alias '{name}' added to primary '{primary}'.")
         return row[0]
     else:
         primary = input("Primary name for new exercise: ").strip().lower().replace("\r", "")
         muscle_group = _prompt_muscle_group()
-        conn.execute("INSERT INTO exercises (primary_name, muscle_group) VALUES (?, ?)", (primary, muscle_group))
-        exercise_id = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (primary,)).fetchone()[0]
+        conn.execute("INSERT INTO exercises (primary_name, muscle_group, user_id) VALUES (?, ?, ?)", (primary, muscle_group, user_id))
+        exercise_id = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ? AND user_id = ?", (primary, user_id)).fetchone()[0]
         if primary != name:
             conn.execute("INSERT INTO exercise_aliases (exercise_id, alias) VALUES (?, ?)", (exercise_id, name))
             print(f"New primary exercise added: '{primary}'. '{name}' saved as alias.")
@@ -199,7 +199,7 @@ def import_csv():
                         workout_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
                         sessions_imported += 1
 
-                exercise_id = resolve_exercise(conn, exercise_cell)
+                exercise_id = resolve_exercise(conn, exercise_cell, user_id)
                 workout_index += 1
                 notes = None
 

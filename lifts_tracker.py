@@ -319,7 +319,7 @@ class Exercise_Instance:
 
 def prompt_log_exercise(user, session):
     while True:
-        name = _input_with_exercise_completion("Exercise name: ")
+        name = _input_with_exercise_completion("Exercise name: ", user.user_id)
         if name:
             break
         print("Exercise name cannot be empty.")
@@ -402,7 +402,7 @@ def prompt_log_exercise(user, session):
 
 def prompt_view_history(user):
     while True:
-        result = _browse_muscle_group()
+        result = _browse_muscle_group(user.user_id)
         if not result:
             return
 
@@ -490,8 +490,8 @@ def prompt_plan_workout(user):
         if entry in VALID_MUSCLE_GROUPS:
             with get_conn() as conn:
                 exercises = conn.execute(
-                    "SELECT exercise_id, primary_name FROM exercises WHERE muscle_group = ? ORDER BY primary_name",
-                    (entry,)
+                    "SELECT exercise_id, primary_name FROM exercises WHERE muscle_group = ? AND user_id = ? ORDER BY primary_name",
+                    (entry, user.user_id)
                 ).fetchall()
             if not exercises:
                 print(f"No exercises found for '{entry}'.")
@@ -510,22 +510,22 @@ def prompt_plan_workout(user):
                     print("Must enter a numeric value.")
         else:
             with get_conn() as conn:
-                row = conn.execute("SELECT exercise_id, primary_name FROM exercises WHERE primary_name = ?", (entry,)).fetchone()
+                row = conn.execute("SELECT exercise_id, primary_name FROM exercises WHERE primary_name = ? AND user_id = ?", (entry, user.user_id)).fetchone()
                 if not row:
                     row = conn.execute("""
                         SELECT e.exercise_id, e.primary_name FROM exercise_aliases ea
                         JOIN exercises e ON e.exercise_id = ea.exercise_id
-                        WHERE ea.alias = ?
-                    """, (entry,)).fetchone()
+                        WHERE ea.alias = ? AND e.user_id = ?
+                    """, (entry, user.user_id)).fetchone()
                 if not row:
-                    all_exercises = conn.execute("SELECT exercise_id, primary_name FROM exercises").fetchall()
-                    all_aliases = conn.execute("SELECT exercise_id, alias FROM exercise_aliases").fetchall()
+                    all_exercises = conn.execute("SELECT exercise_id, primary_name FROM exercises WHERE user_id = ?", (user.user_id,)).fetchall()
+                    all_aliases = conn.execute("SELECT ea.exercise_id, ea.alias FROM exercise_aliases ea JOIN exercises e ON e.exercise_id = ea.exercise_id WHERE e.user_id = ?", (user.user_id,)).fetchall()
                     close_match = next((e for e in all_exercises if entry in e[1] or e[1] in entry), None)
                     close_match = close_match or next((a for a in all_aliases if entry in a[1] or a[1] in entry), None)
                     if close_match:
                         print(f"Did you mean '{close_match[1]}'? (y/n)")
                         if input().strip().lower() == "y":
-                            row = conn.execute("SELECT exercise_id, primary_name FROM exercises WHERE exercise_id = ?", (close_match[0],)).fetchone()
+                            row = conn.execute("SELECT exercise_id, primary_name FROM exercises WHERE exercise_id = ? AND user_id = ?", (close_match[0], user.user_id)).fetchone()
                         else:
                             print(f"No exercise found for '{entry}'.")
                             continue
@@ -581,7 +581,7 @@ def prompt_plan_workout(user):
 
 def prompt_view_graph(user):
     while True:
-        result = _browse_muscle_group()
+        result = _browse_muscle_group(user.user_id)
         if not result:
             break
         exercise_id, exercise_name = result

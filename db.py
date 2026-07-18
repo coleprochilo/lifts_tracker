@@ -1,5 +1,4 @@
 import sqlite3
-from exercise_mapping import EXERCISE_MAPPING
 
 DB_PATH = "lifts_tracker.db"
 
@@ -13,11 +12,3 @@ def init_db():
         schema = f.read()
     with get_conn() as conn:
         conn.executescript(schema)
-        for primary, data in EXERCISE_MAPPING.items():
-            conn.execute(
-                "INSERT OR IGNORE INTO exercises (primary_name, muscle_group) VALUES (?, ?)",
-                (primary, data["muscle_group"])
-            )
-            exercise_id = conn.execute("SELECT exercise_id FROM exercises WHERE primary_name = ?", (primary,)).fetchone()[0]
-            for alias in data["aliases"]:
-                conn.execute("INSERT OR IGNORE INTO exercise_aliases (exercise_id, alias) VALUES (?, ?)", (exercise_id, alias))

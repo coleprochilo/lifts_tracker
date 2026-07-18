@@ -1,13 +1,14 @@
 CREATE TABLE IF NOT EXISTS exercises (
     exercise_id   INTEGER PRIMARY KEY AUTOINCREMENT,
-    primary_name  TEXT NOT NULL UNIQUE,
-    muscle_group  TEXT
+    primary_name  TEXT NOT NULL,
+    muscle_group  TEXT,
+    user_id       INTEGER REFERENCES users(user_id)
 );
 
 CREATE TABLE IF NOT EXISTS exercise_aliases (
     alias_id      INTEGER PRIMARY KEY AUTOINCREMENT,
     exercise_id   INTEGER NOT NULL REFERENCES exercises(exercise_id),
-    alias         TEXT NOT NULL UNIQUE
+    alias         TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS users (
