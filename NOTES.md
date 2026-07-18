@@ -394,7 +394,7 @@ All numeric inputs loop until valid:
 
 ## Deployment (EC2)
 - EC2 instance running: `54.85.25.6` (Elastic IP — permanent), instance ID `i-09fcecab3b67d5ba9`, type `t3.micro`
-- Key pair saved at `~/.ssh/lifts-tracker-key.pem`
+- Key pair saved at `~/.ssh/lifts-tracker-key.pem` — SSH username is `ec2-user` (NOT `ubuntu`)
 - Security group `sg-0016bf2ecae215eb8` — ports 22 and 5001 open
 - App lives at `~/app/` on the server
 - Auto-start configured via systemd service at `/etc/systemd/system/lifts-tracker.service` — survives reboots
@@ -403,6 +403,7 @@ All numeric inputs loop until valid:
 - Access from phone: `http://107.21.171.224:5001`
 - `scp` command added to end of `import_csv.py` — auto-pushes DB to EC2 after import completes
 - Workflow: update Excel → export CSV → run `import_csv.py` (auto-pushes DB to EC2) → done
+- To pull EC2 DB down to local: `scp -i ~/.ssh/lifts-tracker-key.pem ec2-user@54.85.25.6:~/app/lifts_tracker.db "/path/to/local/lifts_tracker.db"`
 
 ## Future Plans
 - Data visualization ✅ — implemented in `graphs.py`
