@@ -207,7 +207,7 @@ def session_detail(user_id, workout_id):
         instance_sets = {}
         for inst in instances:
             sets = conn.execute(
-                "SELECT weight, reps, rest_time FROM exercise_sets WHERE instance_id = ? ORDER BY set_number",
+                "SELECT weight, reps, rest_time, notes FROM exercise_sets WHERE instance_id = ? ORDER BY set_number",
                 (inst[4],)
             ).fetchall()
             def fmt(v):
@@ -217,7 +217,8 @@ def session_detail(user_id, workout_id):
                 "rest_str": ", ".join(str(fmt(s[2])) for s in sets[:-1] if s[2] is not None) or None,
                 "weights": ", ".join("bw" if s[0] == 0 else str(fmt(s[0])) for s in sets),
                 "reps": ", ".join(str(fmt(s[1])) for s in sets),
-                "rest_export": ", ".join(str(fmt(s[2])) for s in sets[:-1] if s[2] is not None) or ""
+                "rest_export": ", ".join(str(fmt(s[2])) for s in sets[:-1] if s[2] is not None) or "",
+                "set_notes": [s[3] for s in sets],
             }
     return render_template("session_detail.html", user_id=user_id, username=user[0],
                            session=session, instances=instances, instance_sets=instance_sets)
@@ -314,6 +315,7 @@ def log_instance(user_id, exercise_id):
             weights = request.form.getlist("weight")
             reps = request.form.getlist("reps")
             rests = request.form.getlist("rest")
+            set_notes = request.form.getlist("set_notes")
             sets = []
             for i, (w, r) in enumerate(zip(weights, reps)):
                 try:
@@ -327,7 +329,8 @@ def log_instance(user_id, exercise_id):
                         rest = float(rests[i]) if rests[i].strip() else None
                     except ValueError:
                         rest = None
-                sets.append((weight, rep, rest))
+                sn = set_notes[i].strip() if i < len(set_notes) else None
+                sets.append((weight, rep, rest, sn or None))
             if sets:
                 workout_index = (conn.execute(
                     "SELECT COUNT(*) FROM exercise_instances WHERE workout_id = ?", (workout_id,)
@@ -337,10 +340,10 @@ def log_instance(user_id, exercise_id):
                     (workout_id, exercise_id, exercise[0], intensity, workout_index, notes)
                 )
                 instance_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
-                for set_num, (weight, rep, rest) in enumerate(sets, 1):
+                for set_num, (weight, rep, rest, sn) in enumerate(sets, 1):
                     conn.execute(
-                        "INSERT INTO exercise_sets (instance_id, set_number, weight, reps, rest_time) VALUES (?, ?, ?, ?, ?)",
-                        (instance_id, set_num, weight, rep, rest)
+                        "INSERT INTO exercise_sets (instance_id, set_number, weight, reps, rest_time, notes) VALUES (?, ?, ?, ?, ?, ?)",
+                        (instance_id, set_num, weight, rep, rest, sn)
                     )
             return redirect(url_for("user_home", user_id=user_id))
 

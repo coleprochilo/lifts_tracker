@@ -24,6 +24,9 @@
     {% if s.rest_str %}
       <div class="meta">rest: {{ s.rest_str }} min</div>
     {% endif %}
+    {% for sn in s.set_notes %}
+      {% if sn %}<div class="meta">set {{ loop.index }} notes: {{ sn }}</div>{% endif %}
+    {% endfor %}
     {% if inst[3] %}
       <div class="meta">notes: {{ inst[3] }}</div>
     {% endif %}

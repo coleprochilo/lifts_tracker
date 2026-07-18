@@ -48,5 +48,6 @@ CREATE TABLE IF NOT EXISTS exercise_sets (
     set_number   INTEGER NOT NULL,
     weight       REAL,
     reps         REAL,
-    rest_time    REAL
+    rest_time    REAL,
+    notes        TEXT
 );

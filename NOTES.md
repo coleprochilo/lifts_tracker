@@ -94,6 +94,7 @@ last time and improve each session. Eventually will be expanded to a mobile app.
 - `weight` REAL
 - `reps` REAL (float to support 0.5 half reps)
 - `rest_time` REAL nullable (NULL on last set — only rest between sets)
+- `notes` TEXT nullable — per-set notes, separate from instance-level notes
 
 ---
 
@@ -353,7 +354,8 @@ All numeric inputs loop until valid:
   - "Create Session" button on user home — only shown when no session exists for today
   - Green active session banner on user home shows split day when session exists for today
   - "Add Instance" button on every exercise history page — only shown when session exists for today
-  - Add instance flow: intensity picker → add sets one by one via "+ Add Set" button (weight, reps, rest per set) → notes → commit
+  - Add instance flow: intensity picker → add sets one by one via "+ Add Set" button (weight, reps, rest, optional set notes per set) → overall notes → commit
+  - Per-set notes shown on session detail as "set 1 notes:", "set 2 notes:" etc. above the overall instance notes
   - `workout_index` auto-assigned on commit based on count of existing instances in today's session
   - Committing with no valid sets is a no-op — redirects back without inserting
   - Active session detected by querying for today's date + user_id — fully stateless, no server-side session needed
