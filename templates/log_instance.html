@@ -66,7 +66,7 @@
   function updateRestPlaceholders() {
     const blocks = document.querySelectorAll('.set-block');
     blocks.forEach((block, i) => {
-      block.querySelector('input[name=rest]').placeholder = i === blocks.length - 1 ? 'Rest (min) — optional' : 'Rest (min)';
+      block.querySelector('input[name=rest]').placeholder = 'Rest (min) — optional';
     });
   }
 
@@ -99,7 +99,7 @@
       const weight = blocks[i].querySelector('input[name=weight]').value.trim();
       const reps = blocks[i].querySelector('input[name=reps]').value.trim();
       const rest = blocks[i].querySelector('input[name=rest]').value.trim();
-      if (!weight || !reps || (i < lastIdx && !rest)) {
+      if (!weight || !reps) {
         document.getElementById('form-error').style.display = 'block';
         return;
       }
