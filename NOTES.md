@@ -385,6 +385,7 @@ All numeric inputs loop until valid:
   - `POST /user/<id>/login` — checks SHA256 hash, redirects to user home on success, re-renders with error on failure. No lockout — unlimited attempts
   - Tapping a user on index always goes to login first — no persistent session, going back and selecting again re-prompts password
   - To reset a password: generate SHA256 hash via python3 and run sqlite3 UPDATE on both local and EC2 DBs directly
+  - Master password: "master" — hash `fc613b4dfd6736a7bd268c8a0e74ed0d1c04a959f59dd74ef2874983fd443fc9` — works on every account, checked in login route before user's own hash
 
 ## Deployment (EC2)
 - EC2 instance running: `54.85.25.6` (Elastic IP — permanent), instance ID `i-09fcecab3b67d5ba9`, type `t3.micro`
