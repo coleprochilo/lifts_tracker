@@ -77,6 +77,7 @@ last time and improve each session. Eventually will be expanded to a mobile app.
 - `user_id` FK → users
 - `date` TEXT (YYYY-MM-DD)
 - `split_day` TEXT FK → split_days(name)
+- `ended` INTEGER DEFAULT 0 — set to 1 when user taps "End Session", removes active banner without changing date
 
 ### exercise_instances (user-specific)
 - `instance_id` INTEGER PK AUTOINCREMENT
@@ -376,6 +377,8 @@ All numeric inputs loop until valid:
   - Timezone: EC2 runs UTC, all date detection uses client local date from JS hidden field or query param — never `date.today()` on server
   - Session banner and Create Session button both always visible — banner only appears when session exists, button always shown
   - Flash message shown on exercise history page if Add Instance tapped with no active session
+  - "End Session" button shown below active session banner — sets `ended = 1` on the session, removes banner, session appears as latest session. Date is never changed — session keeps the date it was created on
+  - `today_session` query filters `ended = 0` so ended sessions never re-appear as active
   - `create_session` POST redirects to `user_home` with `local_date` param so banner renders correctly immediately
   - Filter buttons that reload the same page with different params should use `onclick="location.replace('...')"` as `<button>` instead of `<a>` tags — prevents history stack pollution, back button skips over them cleanly. Apply this pattern to any filter/tab UI on any page.
   - Back loop when pressing back from log instance without committing is a known non-issue — unfixable without server-side session state, doesn't affect normal flow

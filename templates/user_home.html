@@ -5,9 +5,12 @@
 <div class="username-tag">{{ session_count }} sessions recorded</div>
 
 {% if today_session %}
-  <div style="background:#1a2a1a; border-radius:10px; padding:12px; margin-bottom:16px; font-size:0.9rem; color:#6fcf6f;">
+  <div style="background:#1a2a1a; border-radius:10px; padding:12px; margin-bottom:8px; font-size:0.9rem; color:#6fcf6f;">
     Session active · {{ today_session[1] }}
   </div>
+  <form method="post" action="{{ url_for('end_session', user_id=user_id, workout_id=today_session[0]) }}">
+    <button type="submit" style="width:100%; background:#1a2a1a; color:#e05555; border:1px solid #e05555; border-radius:10px; padding:10px; font-size:0.9rem; margin-bottom:16px; cursor:pointer;">End Session</button>
+  </form>
 {% endif %}
 <a id="create-btn" href="{{ url_for('create_session', user_id=user_id) }}" style="display:block; background:#2979ff; color:#fff; text-align:center; padding:12px; border-radius:10px; margin-bottom:8px; font-size:1rem; font-weight:600;">+ Create Session</a>
 <a href="{{ url_for('add_split_day', user_id=user_id) }}" style="display:block; background:#1a1a1a; color:#4da6ff; text-align:center; padding:10px; border-radius:10px; margin-bottom:8px; font-size:0.9rem;">+ Add Split Day</a>

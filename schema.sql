@@ -29,7 +29,8 @@ CREATE TABLE IF NOT EXISTS workout_sessions (
     workout_id    INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id       INTEGER NOT NULL REFERENCES users(user_id),
     date          TEXT NOT NULL,
-    split_day     TEXT REFERENCES split_days(name)
+    split_day     TEXT REFERENCES split_days(name),
+    ended         INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS exercise_instances (

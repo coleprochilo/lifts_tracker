@@ -106,7 +106,7 @@ def user_home(user_id):
         muscle_groups = VALID_MUSCLE_GROUPS
         today = request.args.get("local_date") or date.today().isoformat()
         today_session = conn.execute(
-            "SELECT workout_id, split_day FROM workout_sessions WHERE user_id = ? AND date = ? ORDER BY workout_id DESC LIMIT 1",
+            "SELECT workout_id, split_day FROM workout_sessions WHERE user_id = ? AND date = ? AND ended = 0 ORDER BY workout_id DESC LIMIT 1",
             (user_id, today)
         ).fetchone()
         latest_session = conn.execute(
@@ -259,6 +259,13 @@ def add_split_day(user_id):
             return redirect(url_for("user_home", user_id=user_id))
         splits = [r[0] for r in conn.execute("SELECT name FROM split_days WHERE user_id = ? ORDER BY name", (user_id,)).fetchall()]
     return render_template("add_split_day.html", user_id=user_id, username=user[0], splits=splits)
+
+
+@app.route("/user/<int:user_id>/session/<int:workout_id>/end", methods=["POST"])
+def end_session(user_id, workout_id):
+    with get_conn() as conn:
+        conn.execute("UPDATE workout_sessions SET ended = 1 WHERE workout_id = ? AND user_id = ?", (workout_id, user_id))
+    return redirect(url_for("user_home", user_id=user_id))
 
 
 @app.route("/user/<int:user_id>/session/create", methods=["GET", "POST"])
