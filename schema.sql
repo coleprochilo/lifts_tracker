@@ -53,3 +53,25 @@ CREATE TABLE IF NOT EXISTS exercise_sets (
     rest_time    REAL,
     notes        TEXT
 );
+
+CREATE TABLE IF NOT EXISTS superset_instances (
+    superset_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    workout_id     INTEGER NOT NULL REFERENCES workout_sessions(workout_id),
+    exercise_id_a  INTEGER NOT NULL REFERENCES exercises(exercise_id),
+    exercise_id_b  INTEGER NOT NULL REFERENCES exercises(exercise_id),
+    intensity      TEXT,
+    workout_index  INTEGER,
+    notes          TEXT
+);
+
+CREATE TABLE IF NOT EXISTS superset_sets (
+    superset_set_id  INTEGER PRIMARY KEY AUTOINCREMENT,
+    superset_id      INTEGER NOT NULL REFERENCES superset_instances(superset_id),
+    set_number       INTEGER NOT NULL,
+    weight_a         REAL,
+    reps_a           REAL,
+    weight_b         REAL,
+    reps_b           REAL,
+    rest_time        REAL,
+    notes            TEXT
+);

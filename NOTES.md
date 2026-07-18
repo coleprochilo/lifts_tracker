@@ -86,7 +86,7 @@ last time and improve each session. Eventually will be expanded to a mobile app.
 - `exercise_id` FK → exercises
 - `entered_name` TEXT (raw name as typed by user)
 - `intensity` TEXT (light/normal/heavy)
-- `workout_index` INTEGER (order in session, entered manually)
+- `workout_index` INTEGER (order in session, auto-assigned based on count of existing instances + supersets)
 - `notes` TEXT nullable
 
 ### exercise_sets
@@ -97,6 +97,26 @@ last time and improve each session. Eventually will be expanded to a mobile app.
 - `reps` REAL (float to support 0.5 half reps)
 - `rest_time` REAL nullable (NULL on last set — only rest between sets)
 - `notes` TEXT nullable — per-set notes, separate from instance-level notes
+
+### superset_instances
+- `superset_id` INTEGER PK AUTOINCREMENT
+- `workout_id` FK → workout_sessions
+- `exercise_id_a` INTEGER FK → exercises — always the exercise you navigated from (left side)
+- `exercise_id_b` INTEGER FK → exercises — exercise picked during superset creation (right side)
+- `intensity` TEXT
+- `workout_index` INTEGER — auto-assigned same as regular instances, counts as one slot
+- `notes` TEXT nullable
+
+### superset_sets
+- `superset_set_id` INTEGER PK AUTOINCREMENT
+- `superset_id` FK → superset_instances
+- `set_number` INTEGER
+- `weight_a` REAL
+- `reps_a` REAL
+- `weight_b` REAL
+- `reps_b` REAL
+- `rest_time` REAL nullable — one rest per set (shared between both exercises)
+- `notes` TEXT nullable
 
 ---
 
@@ -334,7 +354,6 @@ All numeric inputs loop until valid:
 - Runs on port 5001 (port 5000 conflicts with macOS AirPlay Receiver)
 - Multi-user: home page shows all users, each user has their own history view
 - Routes:
-  - `GET /` — user selector
   - `GET /user/<id>` — search bar + muscle group browse, shows Create Session button or active session banner
   - `GET /user/<id>/muscle/<group>` — exercise list for that group
   - `GET /user/<id>/exercise/<id>` — full history with light/normal/heavy filter, shows Add Instance button if session active today
@@ -384,6 +403,11 @@ All numeric inputs loop until valid:
   - Session notes shown on session detail below the copy paste button — only renders if notes exist
   - `create_session` POST redirects to `user_home` with `local_date` param so banner renders correctly immediately
   - Filter buttons that reload the same page with different params should use `onclick="location.replace('...')"` as `<button>` instead of `<a>` tags — prevents history stack pollution, back button skips over them cleanly. Apply this pattern to any filter/tab UI on any page.
+  - `GET /user/<id>/exercise/<id>/superset` — muscle group picker then exercise list to select exercise B. Only reachable when session is active.
+  - `GET/POST /user/<id>/exercise/<id_a>/superset/<id_b>/log` — log superset form. Each set has side-by-side weight/reps for A and B, one shared rest field, optional set notes. On POST inserts into `superset_instances` + `superset_sets`, redirects to user home.
+  - Exercise history page shows "+ Create Superset" button below "+ Add Instance" — only when session is active
+  - Session detail renders supersets as cards with "Exercise A + Exercise B" header and side-by-side set rows per set
+  - `workout_index` for supersets auto-assigned from combined count of `exercise_instances` + `superset_instances` in the session — counts as one slot
   - Back loop when pressing back from log instance without committing is a known non-issue — unfixable without server-side session state, doesn't affect normal flow
   - `split_days` table has `user_id` column — each user owns their own split days. Existing rows migrated via `ALTER TABLE` + `UPDATE` (not a wipe/reseed). New users prompted for split days on CLI registration via `_setup_split_days()`. Web app has "+ Add Split Day" button on user home linking to `/user/<id>/split/add`
   - All split day queries filter by `user_id` in both `lifts_tracker.py` and `web_app.py`

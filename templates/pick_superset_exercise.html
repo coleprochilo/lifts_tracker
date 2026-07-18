@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<a class="back-link" href="javascript:history.back()">← Back</a>
+<h1>Create Superset</h1>
+<div class="username-tag">{{ exercise_a.title() }} +</div>
+
+{% if not group %}
+  <div style="color:#aaa; font-size:0.9rem; margin-bottom:12px;">Pick a muscle group for exercise B</div>
+  {% for g in muscle_groups %}
+  <div class="card">
+    <a href="{{ url_for('pick_superset_exercise', user_id=user_id, exercise_id=exercise_id, group=g, local_date=local_date) }}">{{ g.title() }}</a>
+  </div>
+  {% endfor %}
+{% else %}
+  <div style="color:#aaa; font-size:0.9rem; margin-bottom:12px;">Pick exercise B from {{ group.title() }}</div>
+  {% for ex in exercises %}
+  <div class="card">
+    <a href="{{ url_for('log_superset', user_id=user_id, exercise_id_a=exercise_id, exercise_id_b=ex[0], local_date=local_date) }}">{{ ex[1].title() }}</a>
+  </div>
+  {% endfor %}
+  {% if not exercises %}
+    <p style="color:#666;">No other exercises in this group.</p>
+  {% endif %}
+{% endif %}
+{% endblock %}

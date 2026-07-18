@@ -220,8 +220,32 @@ def session_detail(user_id, workout_id):
                 "rest_export": ", ".join(str(fmt(s[2])) for s in sets[:-1] if s[2] is not None) or "",
                 "set_notes": [s[3] for s in sets],
             }
+        supersets = conn.execute("""
+            SELECT si.superset_id, ea.primary_name, eb.primary_name, si.intensity, si.notes, si.workout_index
+            FROM superset_instances si
+            JOIN exercises ea ON si.exercise_id_a = ea.exercise_id
+            JOIN exercises eb ON si.exercise_id_b = eb.exercise_id
+            WHERE si.workout_id = ?
+            ORDER BY si.workout_index
+        """, (workout_id,)).fetchall()
+        superset_sets = {}
+        for ss in supersets:
+            sets = conn.execute(
+                "SELECT weight_a, reps_a, weight_b, reps_b, rest_time, notes FROM superset_sets WHERE superset_id = ? ORDER BY set_number",
+                (ss[0],)
+            ).fetchall()
+            def fmt(v):
+                return int(v) if v == int(v) else v
+            superset_sets[ss[0]] = {
+                "sets": sets,
+                "sets_str_a": ", ".join(f"{fmt(s[0])}x{fmt(s[1])}" for s in sets),
+                "sets_str_b": ", ".join(f"{fmt(s[2])}x{fmt(s[3])}" for s in sets),
+                "rest_str": ", ".join(str(fmt(s[4])) for s in sets[:-1] if s[4] is not None) or None,
+                "set_notes": [s[5] for s in sets],
+            }
     return render_template("session_detail.html", user_id=user_id, username=user[0],
-                           session=session, instances=instances, instance_sets=instance_sets)
+                           session=session, instances=instances, instance_sets=instance_sets,
+                           supersets=supersets, superset_sets=superset_sets)
 
 
 @app.route("/create-user", methods=["GET", "POST"])
@@ -359,6 +383,92 @@ def log_instance(user_id, exercise_id):
                            exercise_id=exercise_id, primary_name=exercise[0],
                            muscle_group=exercise[1], local_date=local_date,
                            history=get_exercise_history(exercise_id, user_id)[1][-8:])
+
+
+@app.route("/user/<int:user_id>/exercise/<int:exercise_id>/superset")
+def pick_superset_exercise(user_id, exercise_id):
+    with get_conn() as conn:
+        user = conn.execute("SELECT username FROM users WHERE user_id = ?", (user_id,)).fetchone()
+        if not user:
+            return redirect(url_for("index"))
+        group = request.args.get("group")
+        local_date = request.args.get("local_date", "").strip() or date.today().isoformat()
+        exercises = []
+        if group:
+            exercises = conn.execute(
+                "SELECT exercise_id, primary_name FROM exercises WHERE muscle_group = ? AND user_id = ? AND exercise_id != ? ORDER BY primary_name",
+                (group, user_id, exercise_id)
+            ).fetchall()
+        exercise_a = conn.execute("SELECT primary_name FROM exercises WHERE exercise_id = ? AND user_id = ?", (exercise_id, user_id)).fetchone()
+    return render_template("pick_superset_exercise.html", user_id=user_id, username=user[0],
+                           exercise_id=exercise_id, exercise_a=exercise_a[0],
+                           muscle_groups=VALID_MUSCLE_GROUPS, group=group, exercises=exercises, local_date=local_date)
+
+
+@app.route("/user/<int:user_id>/exercise/<int:exercise_id_a>/superset/<int:exercise_id_b>/log", methods=["GET", "POST"])
+def log_superset(user_id, exercise_id_a, exercise_id_b):
+    with get_conn() as conn:
+        user = conn.execute("SELECT username FROM users WHERE user_id = ?", (user_id,)).fetchone()
+        if not user:
+            return redirect(url_for("index"))
+        local_date = request.form.get("local_date", "").strip() if request.method == "POST" else request.args.get("local_date", "").strip()
+        local_date = local_date or date.today().isoformat()
+        session = conn.execute(
+            "SELECT workout_id FROM workout_sessions WHERE user_id = ? AND date = ? AND ended = 0 ORDER BY workout_id DESC LIMIT 1",
+            (user_id, local_date)
+        ).fetchone()
+        if not session:
+            flash("No active session for today. Create a session first.")
+            return redirect(url_for("exercise_history", user_id=user_id, exercise_id=exercise_id_a))
+        workout_id = session[0]
+        exercise_a = conn.execute("SELECT primary_name, muscle_group FROM exercises WHERE exercise_id = ? AND user_id = ?", (exercise_id_a, user_id)).fetchone()
+        exercise_b = conn.execute("SELECT primary_name, muscle_group FROM exercises WHERE exercise_id = ? AND user_id = ?", (exercise_id_b, user_id)).fetchone()
+        if not exercise_a or not exercise_b:
+            return redirect(url_for("user_home", user_id=user_id))
+
+        if request.method == "POST":
+            intensity = request.form.get("intensity", "").strip() or None
+            notes = request.form.get("notes", "").strip() or None
+            weights_a = request.form.getlist("weight_a")
+            reps_a_list = request.form.getlist("reps_a")
+            weights_b = request.form.getlist("weight_b")
+            reps_b_list = request.form.getlist("reps_b")
+            rests = request.form.getlist("rest")
+            set_notes = request.form.getlist("set_notes")
+            sets = []
+            for i, (wa, ra, wb, rb) in enumerate(zip(weights_a, reps_a_list, weights_b, reps_b_list)):
+                try:
+                    wa, ra, wb, rb = float(wa), float(ra), float(wb), float(rb)
+                except ValueError:
+                    continue
+                rest = None
+                if i < len(rests) - 1:
+                    try:
+                        rest = float(rests[i]) if rests[i].strip() else None
+                    except ValueError:
+                        rest = None
+                sn = set_notes[i].strip() if i < len(set_notes) else None
+                sets.append((wa, ra, wb, rb, rest, sn or None))
+            if sets:
+                workout_index = (conn.execute(
+                    "SELECT (SELECT COUNT(*) FROM exercise_instances WHERE workout_id = ?) + (SELECT COUNT(*) FROM superset_instances WHERE workout_id = ?)",
+                    (workout_id, workout_id)
+                ).fetchone()[0] or 0) + 1
+                conn.execute(
+                    "INSERT INTO superset_instances (workout_id, exercise_id_a, exercise_id_b, intensity, workout_index, notes) VALUES (?, ?, ?, ?, ?, ?)",
+                    (workout_id, exercise_id_a, exercise_id_b, intensity, workout_index, notes)
+                )
+                superset_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+                for set_num, (wa, ra, wb, rb, rest, sn) in enumerate(sets, 1):
+                    conn.execute(
+                        "INSERT INTO superset_sets (superset_id, set_number, weight_a, reps_a, weight_b, reps_b, rest_time, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                        (superset_id, set_num, wa, ra, wb, rb, rest, sn)
+                    )
+            return redirect(url_for("user_home", user_id=user_id))
+
+    return render_template("log_superset.html", user_id=user_id, username=user[0],
+                           exercise_id_a=exercise_id_a, exercise_id_b=exercise_id_b,
+                           name_a=exercise_a[0], name_b=exercise_b[0], local_date=local_date)
 
 
 @app.route("/user/<int:user_id>/search")

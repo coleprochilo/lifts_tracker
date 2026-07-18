@@ -17,9 +17,13 @@
 <div id="export-data" style="display:none;">{% for inst in instances %}{% set s = instance_sets[inst[4]] %}{{ inst[1] }}	{{ s.weights }}	{{ s.reps }}	{{ s.rest_export }}
 {% endfor %}</div>
 
-{% if not instances %}
+{% if not instances and not supersets %}
   <p style="color:#666;">No instances logged.</p>
 {% else %}
+  {% set all_items = [] %}
+  {% for inst in instances %}{% set _ = all_items.append(('instance', inst[5] if inst|length > 5 else loop.index, inst)) %}{% endfor %}
+  {% for ss in supersets %}{% set _ = all_items.append(('superset', ss[5], ss)) %}{% endfor %}
+
   {% for inst in instances %}
   {% set s = instance_sets[inst[4]] %}
   <div class="card">
@@ -36,6 +40,36 @@
     {% endif %}
     <div style="margin-top:6px;">
       <span class="badge {{ inst[2] }}">{{ inst[2] }}</span>
+    </div>
+  </div>
+  {% endfor %}
+
+  {% for ss in supersets %}
+  {% set s = superset_sets[ss[0]] %}
+  <div class="card">
+    <div style="font-size:1rem; margin-bottom:4px;">{{ ss[1].title() }} <span style="color:#4da6ff;">+</span> {{ ss[2].title() }}</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:4px;">
+      <div style="color:#888; font-size:0.75rem;">{{ ss[1].title() }}</div>
+      <div style="color:#888; font-size:0.75rem;">{{ ss[2].title() }}</div>
+    </div>
+    {% for row in s.sets %}
+    {% set fmt = namespace() %}
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:2px;">
+      <div class="set-row">{{ row[0]|int if row[0] == row[0]|int else row[0] }}x{{ row[1]|int if row[1] == row[1]|int else row[1] }}</div>
+      <div class="set-row">{{ row[2]|int if row[2] == row[2]|int else row[2] }}x{{ row[3]|int if row[3] == row[3]|int else row[3] }}</div>
+    </div>
+    {% endfor %}
+    {% if s.rest_str %}
+      <div class="meta">rest: {{ s.rest_str }} min</div>
+    {% endif %}
+    {% for sn in s.set_notes %}
+      {% if sn %}<div class="meta">set {{ loop.index }} notes: {{ sn }}</div>{% endif %}
+    {% endfor %}
+    {% if ss[4] %}
+      <div class="meta">notes: {{ ss[4] }}</div>
+    {% endif %}
+    <div style="margin-top:6px;">
+      <span class="badge {{ ss[3] }}">{{ ss[3] }}</span>
     </div>
   </div>
   {% endfor %}
