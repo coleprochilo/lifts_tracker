@@ -5,7 +5,7 @@
 <h2>{{ session[1] }}</h2>
 <div class="username-tag">{{ username.title() }}</div>
 
-{% if instances %}
+{% if instances or supersets %}
 <button onclick="copyForCole()" style="width:100%; background:#1a1a1a; color:#4da6ff; border:none; padding:12px; border-radius:10px; font-size:0.95rem; font-weight:600; cursor:pointer; margin-bottom:16px;">Copy paste for cole</button>
 <div id="copy-confirm" style="color:#6fcf6f; font-size:0.85rem; margin-bottom:12px; display:none;">Copied!</div>
 {% endif %}
@@ -14,8 +14,10 @@
 <div style="background:#1a1a1a; border-radius:10px; padding:12px; margin-bottom:16px; font-size:0.9rem; color:#aaa;">session notes: {{ session[3] }}</div>
 {% endif %}
 
-<div id="export-data" style="display:none;">{% for inst in instances %}{% set s = instance_sets[inst[4]] %}{{ inst[1] }}	{{ s.weights }}	{{ s.reps }}	{{ s.rest_export }}
-{% endfor %}</div>
+<div id="export-data" style="display:none;">{% set ss_count = namespace(n=0) %}{% for item in all_items %}{% if item.type == 'instance' %}{% set inst = item.data %}{% set s = instance_sets[inst[4]] %}{{ inst[1] }}	{{ s.weights }}	{{ s.reps }}	{{ s.rest_export }}
+{% else %}{% set ss_count.n = ss_count.n + 1 %}{% set ss = item.data %}{% set s = superset_sets[ss[0]] %}superset {{ ss_count.n }}: {{ ss[1] }}	{{ s.weights_a }}	{{ s.reps_a }}	
+superset {{ ss_count.n }}: {{ ss[2] }}	{{ s.weights_b }}	{{ s.reps_b }}	{{ s.rest_export }}
+{% endif %}{% endfor %}</div>
 
 {% if not instances and not supersets %}
   <p style="color:#666;">No instances logged.</p>

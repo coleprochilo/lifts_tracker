@@ -242,6 +242,11 @@ def session_detail(user_id, workout_id):
                 "sets_str_b": ", ".join(f"{fmt(s[2])}x{fmt(s[3])}" for s in sets),
                 "rest_str": ", ".join(str(fmt(s[4])) for s in sets[:-1] if s[4] is not None) or None,
                 "set_notes": [s[5] for s in sets],
+                "weights_a": ", ".join(str(fmt(s[0])) for s in sets),
+                "reps_a": ", ".join(str(fmt(s[1])) for s in sets),
+                "weights_b": ", ".join(str(fmt(s[2])) for s in sets),
+                "reps_b": ", ".join(str(fmt(s[3])) for s in sets),
+                "rest_export": ", ".join(str(fmt(s[4])) for s in sets[:-1] if s[4] is not None) or "",
             }
         all_items = []
         for inst in instances:
