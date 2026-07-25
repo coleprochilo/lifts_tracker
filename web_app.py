@@ -243,9 +243,15 @@ def session_detail(user_id, workout_id):
                 "rest_str": ", ".join(str(fmt(s[4])) for s in sets[:-1] if s[4] is not None) or None,
                 "set_notes": [s[5] for s in sets],
             }
+        all_items = []
+        for inst in instances:
+            all_items.append({"type": "instance", "workout_index": inst[0], "data": inst})
+        for ss in supersets:
+            all_items.append({"type": "superset", "workout_index": ss[5], "data": ss})
+        all_items.sort(key=lambda x: x["workout_index"])
     return render_template("session_detail.html", user_id=user_id, username=user[0],
                            session=session, instances=instances, instance_sets=instance_sets,
-                           supersets=supersets, superset_sets=superset_sets)
+                           supersets=supersets, superset_sets=superset_sets, all_items=all_items)
 
 
 @app.route("/create-user", methods=["GET", "POST"])

@@ -406,8 +406,7 @@ All numeric inputs loop until valid:
   - `GET /user/<id>/exercise/<id>/superset` — muscle group picker then exercise list to select exercise B. Only reachable when session is active.
   - `GET/POST /user/<id>/exercise/<id_a>/superset/<id_b>/log` — log superset form. Each set has side-by-side weight/reps for A and B, one shared rest field, optional set notes. On POST inserts into `superset_instances` + `superset_sets`, redirects to user home.
   - Exercise history page shows "+ Create Superset" button below "+ Add Instance" — only when session is active
-  - Session detail renders supersets as cards with "Exercise A + Exercise B" header and side-by-side set rows per set
-  - `workout_index` for supersets auto-assigned from combined count of `exercise_instances` + `superset_instances` in the session — counts as one slot
+  - Session detail renders supersets as cards with "Exercise A + Exercise B" header and side-by-side set rows per set. Supersets are interleaved with regular instances in `workout_index` order — merged and sorted in the route via `all_items` list, not separately at the bottom.
   - Back loop when pressing back from log instance without committing is a known non-issue — unfixable without server-side session state, doesn't affect normal flow
   - `split_days` table has `user_id` column — each user owns their own split days. Existing rows migrated via `ALTER TABLE` + `UPDATE` (not a wipe/reseed). New users prompted for split days on CLI registration via `_setup_split_days()`. Web app has "+ Add Split Day" button on user home linking to `/user/<id>/split/add`
   - All split day queries filter by `user_id` in both `lifts_tracker.py` and `web_app.py`
