@@ -8,13 +8,26 @@
 
   <div class="section-title">Intensity</div>
   <div class="filter-row" style="margin-bottom:20px;">
-    <button type="button" class="filter-btn intensity-btn" data-val="light">Light</button>
-    <button type="button" class="filter-btn intensity-btn active" data-val="normal">Normal</button>
-    <button type="button" class="filter-btn intensity-btn" data-val="heavy">Heavy</button>
+    <button type="button" class="filter-btn intensity-btn{% if existing_intensity == 'light' %} active{% endif %}" data-val="light">Light</button>
+    <button type="button" class="filter-btn intensity-btn{% if existing_intensity == 'normal' or not existing_intensity %} active{% endif %}" data-val="normal">Normal</button>
+    <button type="button" class="filter-btn intensity-btn{% if existing_intensity == 'heavy' %} active{% endif %}" data-val="heavy">Heavy</button>
   </div>
-  <input type="hidden" name="intensity" id="intensity-input" value="normal">
+  <input type="hidden" name="intensity" id="intensity-input" value="{{ existing_intensity or 'normal' }}">
 
   <div id="sets-container">
+    {% if existing_sets %}
+      {% for s in existing_sets %}
+      <div class="section-title">Set {{ loop.index }}</div>
+      <div class="set-block" style="background:#1a1a1a; border-radius:10px; padding:14px; margin-bottom:10px;">
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+          <input type="number" name="weight" placeholder="Weight (lbs)" step="0.5" min="0" value="{{ s[0]|int if s[0] == s[0]|int else s[0] }}" style="flex:1; min-width:0; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
+          <input type="number" name="reps" placeholder="Reps" step="0.5" min="0" value="{{ s[1]|int if s[1] == s[1]|int else s[1] }}" style="flex:1; min-width:0; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem;">
+        </div>
+        <input type="number" name="rest" placeholder="Rest (min) — optional" step="0.5" min="0" value="{{ s[2]|int if s[2] and s[2] == s[2]|int else s[2] or '' }}" style="width:100%; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem; box-sizing:border-box; margin-bottom:8px;">
+        <input type="text" name="set_notes" placeholder="Set notes (optional)" value="{{ s[3] or '' }}" style="width:100%; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem; box-sizing:border-box;">
+      </div>
+      {% endfor %}
+    {% else %}
     <div class="section-title">Set 1</div>
     <div class="set-block" style="background:#1a1a1a; border-radius:10px; padding:14px; margin-bottom:10px;">
       <div style="display:flex; gap:8px; margin-bottom:8px;">
@@ -24,16 +37,17 @@
       <input type="number" name="rest" placeholder="Rest (min) — optional" step="0.5" min="0" style="width:100%; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem; box-sizing:border-box; margin-bottom:8px;">
       <input type="text" name="set_notes" placeholder="Set notes (optional)" style="width:100%; padding:10px; border-radius:8px; border:none; background:#111; color:#f0f0f0; font-size:1rem; box-sizing:border-box;">
     </div>
+    {% endif %}
   </div>
 
   <button type="button" id="add-set-btn" style="width:100%; background:#1a1a1a; color:#4da6ff; border:none; padding:12px; border-radius:10px; font-size:0.95rem; cursor:pointer; margin-bottom:16px;">+ Add Set</button>
 
   <div class="section-title">Notes</div>
-  <input type="text" name="notes" placeholder="Optional" style="margin-bottom:8px;">
+  <input type="text" name="notes" placeholder="Optional" value="{{ existing_notes or '' }}" style="margin-bottom:8px;">
 
   <div id="form-error" style="color:#ff6b6b; font-size:0.85rem; margin-bottom:8px; display:none;">Fill out all fields before committing.</div>
-  <button type="button" onclick="submitForm()" style="width:100%; background:#2979ff; color:#fff; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer; margin-bottom:10px;">Commit Instance</button>
-  <button type="button" onclick="location.replace('{{ url_for('muscle_group', user_id=user_id, group=muscle_group) }}')" style="width:100%; background:#1a1a1a; color:#ff6b6b; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer;">Cancel</button>
+  <button type="button" onclick="submitForm()" style="width:100%; background:#2979ff; color:#fff; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer; margin-bottom:10px;">{% if edit_mode %}Save Changes{% else %}Commit Instance{% endif %}</button>
+  <button type="button" onclick="location.replace('{% if edit_mode %}{{ url_for('session_detail', user_id=user_id, workout_id=workout_id) }}{% else %}{{ url_for('muscle_group', user_id=user_id, group=muscle_group) }}{% endif %}')" style="width:100%; background:#1a1a1a; color:#ff6b6b; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer;">Cancel</button>
 </form>
 
 {% if history %}
@@ -61,7 +75,7 @@
     });
   });
 
-  let setCount = 1;
+  let setCount = {{ existing_sets|length if existing_sets else 1 }};
 
   function updateRestPlaceholders() {
     const blocks = document.querySelectorAll('.set-block');

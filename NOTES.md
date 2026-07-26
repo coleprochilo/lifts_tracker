@@ -402,7 +402,11 @@ All numeric inputs loop until valid:
   - `today_session` query filters `ended = 0` so ended sessions never re-appear as active
   - Session notes shown on session detail below the copy paste button — only renders if notes exist
   - `create_session` POST redirects to `user_home` with `local_date` param so banner renders correctly immediately
-  - Filter buttons that reload the same page with different params should use `onclick="location.replace('...')"` as `<button>` instead of `<a>` tags — prevents history stack pollution, back button skips over them cleanly. Apply this pattern to any filter/tab UI on any page.
+  - Edit button on each instance and superset card in session detail — links to edit form pre-filled with existing intensity, weights, reps, rest, set notes, and overall notes. Saving UPDATEs the instance row and delete/reinserts sets. Cancel returns to session detail.
+  - `GET /user/<id>/instance/<instance_id>/edit` — renders `log_instance.html` in edit mode pre-filled with existing data
+  - `POST /user/<id>/instance/<instance_id>/edit` — UPDATEs `exercise_instances`, deletes and reinserts `exercise_sets`. NOTE: if `exercise_sets` ever gains external FK references, this delete/reinsert approach will need to change to an in-place UPDATE per set.
+  - `GET /user/<id>/superset/<superset_id>/edit` — renders `log_superset.html` in edit mode pre-filled with existing data
+  - `POST /user/<id>/superset/<superset_id>/edit` — UPDATEs `superset_instances`, deletes and reinserts `superset_sets`. Same caveat as above re: FK references on `superset_sets`.
   - `GET /user/<id>/exercise/<id>/superset` — muscle group picker then exercise list to select exercise B. Only reachable when session is active.
   - `GET/POST /user/<id>/exercise/<id_a>/superset/<id_b>/log` — log superset form. Each set has side-by-side weight/reps for A and B, one shared rest field, optional set notes. On POST inserts into `superset_instances` + `superset_sets`, redirects to user home.
   - Exercise history page shows "+ Create Superset" button below "+ Add Instance" — only when session is active

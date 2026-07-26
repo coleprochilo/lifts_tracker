@@ -11,8 +11,8 @@
     <div class="filter-row" style="margin-top:6px;">
       {% for val in ['light', 'normal', 'heavy'] %}
       <label style="flex:1; text-align:center;">
-        <input type="radio" name="intensity" value="{{ val }}" {% if val == 'normal' %}checked{% endif %} style="display:none;">
-        <span class="filter-btn" onclick="selectIntensity(this, '{{ val }}')">{{ val.title() }}</span>
+        <input type="radio" name="intensity" value="{{ val }}" {% if existing_intensity == val or (not existing_intensity and val == 'normal') %}checked{% endif %} style="display:none;">
+        <span class="filter-btn {% if existing_intensity == val or (not existing_intensity and val == 'normal') %}active{% endif %}" onclick="selectIntensity(this, '{{ val }}')">{{ val.title() }}</span>
       </label>
       {% endfor %}
     </div>
@@ -24,6 +24,23 @@
   </div>
 
   <div id="sets-container">
+    {% if existing_sets %}
+      {% for s in existing_sets %}
+      <div class="set-block" style="background:#1a1a1a; border-radius:10px; padding:12px; margin-bottom:10px;">
+        <div style="color:#aaa; font-size:0.8rem; margin-bottom:8px;">Set {{ loop.index }}</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+          <input type="number" name="weight_a" placeholder="weight" step="any" min="0" value="{{ s[0]|int if s[0] == s[0]|int else s[0] }}" style="background:#111; color:#f0f0f0; border:1px solid #333; border-radius:8px; padding:10px; font-size:1rem; width:100%; box-sizing:border-box;">
+          <input type="number" name="weight_b" placeholder="weight" step="any" min="0" value="{{ s[2]|int if s[2] == s[2]|int else s[2] }}" style="background:#111; color:#f0f0f0; border:1px solid #333; border-radius:8px; padding:10px; font-size:1rem; width:100%; box-sizing:border-box;">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+          <input type="number" name="reps_a" placeholder="reps" step="any" min="0" value="{{ s[1]|int if s[1] == s[1]|int else s[1] }}" style="background:#111; color:#f0f0f0; border:1px solid #333; border-radius:8px; padding:10px; font-size:1rem; width:100%; box-sizing:border-box;">
+          <input type="number" name="reps_b" placeholder="reps" step="any" min="0" value="{{ s[3]|int if s[3] == s[3]|int else s[3] }}" style="background:#111; color:#f0f0f0; border:1px solid #333; border-radius:8px; padding:10px; font-size:1rem; width:100%; box-sizing:border-box;">
+        </div>
+        <input type="number" name="rest" placeholder="rest (optional)" step="any" min="0" value="{{ s[4]|int if s[4] and s[4] == s[4]|int else s[4] or '' }}" style="background:#111; color:#f0f0f0; border:1px solid #333; border-radius:8px; padding:10px; font-size:1rem; width:100%; box-sizing:border-box; margin-bottom:6px;">
+        <input type="text" name="set_notes" placeholder="set notes (optional)" value="{{ s[5] or '' }}" style="background:#111; color:#f0f0f0; border:1px solid #333; border-radius:8px; padding:10px; font-size:1rem; width:100%; box-sizing:border-box;">
+      </div>
+      {% endfor %}
+    {% else %}
     <div class="set-block" style="background:#1a1a1a; border-radius:10px; padding:12px; margin-bottom:10px;">
       <div style="color:#aaa; font-size:0.8rem; margin-bottom:8px;">Set 1</div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
@@ -37,20 +54,21 @@
       <input type="number" name="rest" placeholder="rest (optional)" step="any" min="0" style="background:#111; color:#f0f0f0; border:1px solid #333; border-radius:8px; padding:10px; font-size:1rem; width:100%; box-sizing:border-box; margin-bottom:6px;">
       <input type="text" name="set_notes" placeholder="set notes (optional)" style="background:#111; color:#f0f0f0; border:1px solid #333; border-radius:8px; padding:10px; font-size:1rem; width:100%; box-sizing:border-box;">
     </div>
+    {% endif %}
   </div>
 
   <button type="button" onclick="addSet()" style="width:100%; background:#1a1a1a; color:#4da6ff; border:1px solid #333; border-radius:10px; padding:10px; font-size:0.95rem; margin-bottom:16px; cursor:pointer;">+ Add Set</button>
 
   <div style="margin-bottom:16px;">
-    <input type="text" name="notes" placeholder="Notes (optional)" style="background:#111; color:#f0f0f0; border:1px solid #333; border-radius:8px; padding:10px; font-size:1rem; width:100%; box-sizing:border-box;">
+    <input type="text" name="notes" placeholder="Notes (optional)" value="{{ existing_notes or '' }}" style="background:#111; color:#f0f0f0; border:1px solid #333; border-radius:8px; padding:10px; font-size:1rem; width:100%; box-sizing:border-box;">
   </div>
 
-  <button type="submit" style="width:100%; background:#2979ff; color:#fff; border:none; border-radius:10px; padding:14px; font-size:1rem; font-weight:600; cursor:pointer; margin-bottom:10px;">Log Superset</button>
-  <button type="button" onclick="location.replace('{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id_a) }}')" style="width:100%; background:transparent; color:#888; border:none; padding:10px; font-size:0.9rem; cursor:pointer;">Cancel</button>
+  <button type="submit" style="width:100%; background:#2979ff; color:#fff; border:none; border-radius:10px; padding:14px; font-size:1rem; font-weight:600; cursor:pointer; margin-bottom:10px;">{% if edit_mode %}Save Changes{% else %}Log Superset{% endif %}</button>
+  <button type="button" onclick="location.replace('{% if edit_mode %}{{ url_for('session_detail', user_id=user_id, workout_id=workout_id) }}{% else %}{{ url_for('exercise_history', user_id=user_id, exercise_id=exercise_id_a) }}{% endif %}')" style="width:100%; background:transparent; color:#888; border:none; padding:10px; font-size:0.9rem; cursor:pointer;">Cancel</button>
 </form>
 
 <script>
-let setCount = 1;
+let setCount = {{ existing_sets|length if existing_sets else 1 }};
 
 function addSet() {
   setCount++;

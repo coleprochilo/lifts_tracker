@@ -38,8 +38,9 @@ superset {{ ss_count.n }}: {{ ss[2] }}	{{ s.weights_b }}	{{ s.reps_b }}	{{ s.res
       {% if inst[3] %}
         <div class="meta">notes: {{ inst[3] }}</div>
       {% endif %}
-      <div style="margin-top:6px;">
+      <div style="margin-top:8px; display:flex; align-items:center; justify-content:space-between;">
         <span class="badge {{ inst[2] }}">{{ inst[2] }}</span>
+        <a href="{{ url_for('edit_instance', user_id=user_id, instance_id=inst[4]) }}" style="color:#4da6ff; font-size:0.8rem;">Edit</a>
       </div>
     </div>
     {% else %}
@@ -66,8 +67,9 @@ superset {{ ss_count.n }}: {{ ss[2] }}	{{ s.weights_b }}	{{ s.reps_b }}	{{ s.res
       {% if ss[4] %}
         <div class="meta">notes: {{ ss[4] }}</div>
       {% endif %}
-      <div style="margin-top:6px;">
+      <div style="margin-top:8px; display:flex; align-items:center; justify-content:space-between;">
         <span class="badge {{ ss[3] }}">{{ ss[3] }}</span>
+        <a href="{{ url_for('edit_superset', user_id=user_id, superset_id=ss[0]) }}" style="color:#4da6ff; font-size:0.8rem;">Edit</a>
       </div>
     </div>
     {% endif %}

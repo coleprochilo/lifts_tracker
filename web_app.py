@@ -396,6 +396,120 @@ def log_instance(user_id, exercise_id):
                            history=get_exercise_history(exercise_id, user_id)[1][-8:])
 
 
+@app.route("/user/<int:user_id>/instance/<int:instance_id>/edit", methods=["GET", "POST"])
+def edit_instance(user_id, instance_id):
+    with get_conn() as conn:
+        user = conn.execute("SELECT username FROM users WHERE user_id = ?", (user_id,)).fetchone()
+        inst = conn.execute(
+            "SELECT ei.instance_id, ei.workout_id, ei.exercise_id, ei.intensity, ei.notes, e.primary_name, e.muscle_group"
+            " FROM exercise_instances ei JOIN exercises e ON ei.exercise_id = e.exercise_id"
+            " WHERE ei.instance_id = ? AND e.user_id = ?", (instance_id, user_id)
+        ).fetchone()
+        if not user or not inst:
+            return redirect(url_for("index"))
+        workout_id = inst[1]
+        if request.method == "POST":
+            intensity = request.form.get("intensity", "").strip() or None
+            notes = request.form.get("notes", "").strip() or None
+            weights = request.form.getlist("weight")
+            reps = request.form.getlist("reps")
+            rests = request.form.getlist("rest")
+            set_notes = request.form.getlist("set_notes")
+            sets = []
+            for i, (w, r) in enumerate(zip(weights, reps)):
+                try:
+                    weight = float(w)
+                    rep = float(r)
+                except ValueError:
+                    continue
+                rest = None
+                if i < len(rests) - 1:
+                    try:
+                        rest = float(rests[i]) if rests[i].strip() else None
+                    except ValueError:
+                        rest = None
+                sn = set_notes[i].strip() if i < len(set_notes) else None
+                sets.append((weight, rep, rest, sn or None))
+            if sets:
+                conn.execute("UPDATE exercise_instances SET intensity = ?, notes = ? WHERE instance_id = ?", (intensity, notes, instance_id))
+                conn.execute("DELETE FROM exercise_sets WHERE instance_id = ?", (instance_id,))
+                for set_num, (weight, rep, rest, sn) in enumerate(sets, 1):
+                    conn.execute(
+                        "INSERT INTO exercise_sets (instance_id, set_number, weight, reps, rest_time, notes) VALUES (?, ?, ?, ?, ?, ?)",
+                        (instance_id, set_num, weight, rep, rest, sn)
+                    )
+            return redirect(url_for("session_detail", user_id=user_id, workout_id=workout_id))
+        existing_sets = conn.execute(
+            "SELECT weight, reps, rest_time, notes FROM exercise_sets WHERE instance_id = ? ORDER BY set_number",
+            (instance_id,)
+        ).fetchall()
+    return render_template("log_instance.html", user_id=user_id, username=user[0],
+                           exercise_id=inst[2], primary_name=inst[5], muscle_group=inst[6],
+                           local_date="", history=[],
+                           edit_mode=True, instance_id=instance_id, workout_id=workout_id,
+                           existing_intensity=inst[3], existing_notes=inst[4] or "",
+                           existing_sets=existing_sets)
+
+
+@app.route("/user/<int:user_id>/superset/<int:superset_id>/edit", methods=["GET", "POST"])
+def edit_superset(user_id, superset_id):
+    with get_conn() as conn:
+        user = conn.execute("SELECT username FROM users WHERE user_id = ?", (user_id,)).fetchone()
+        ss = conn.execute(
+            "SELECT si.superset_id, si.workout_id, si.exercise_id_a, si.exercise_id_b, si.intensity, si.notes,"
+            " ea.primary_name, eb.primary_name"
+            " FROM superset_instances si"
+            " JOIN exercises ea ON si.exercise_id_a = ea.exercise_id"
+            " JOIN exercises eb ON si.exercise_id_b = eb.exercise_id"
+            " WHERE si.superset_id = ? AND ea.user_id = ?", (superset_id, user_id)
+        ).fetchone()
+        if not user or not ss:
+            return redirect(url_for("index"))
+        workout_id = ss[1]
+        if request.method == "POST":
+            intensity = request.form.get("intensity", "").strip() or None
+            notes = request.form.get("notes", "").strip() or None
+            weights_a = request.form.getlist("weight_a")
+            reps_a_list = request.form.getlist("reps_a")
+            weights_b = request.form.getlist("weight_b")
+            reps_b_list = request.form.getlist("reps_b")
+            rests = request.form.getlist("rest")
+            set_notes = request.form.getlist("set_notes")
+            sets = []
+            for i, (wa, ra, wb, rb) in enumerate(zip(weights_a, reps_a_list, weights_b, reps_b_list)):
+                try:
+                    wa, ra, wb, rb = float(wa), float(ra), float(wb), float(rb)
+                except ValueError:
+                    continue
+                rest = None
+                if i < len(rests) - 1:
+                    try:
+                        rest = float(rests[i]) if rests[i].strip() else None
+                    except ValueError:
+                        rest = None
+                sn = set_notes[i].strip() if i < len(set_notes) else None
+                sets.append((wa, ra, wb, rb, rest, sn or None))
+            if sets:
+                conn.execute("UPDATE superset_instances SET intensity = ?, notes = ? WHERE superset_id = ?", (intensity, notes, superset_id))
+                conn.execute("DELETE FROM superset_sets WHERE superset_id = ?", (superset_id,))
+                for set_num, (wa, ra, wb, rb, rest, sn) in enumerate(sets, 1):
+                    conn.execute(
+                        "INSERT INTO superset_sets (superset_id, set_number, weight_a, reps_a, weight_b, reps_b, rest_time, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                        (superset_id, set_num, wa, ra, wb, rb, rest, sn)
+                    )
+            return redirect(url_for("session_detail", user_id=user_id, workout_id=workout_id))
+        existing_sets = conn.execute(
+            "SELECT weight_a, reps_a, weight_b, reps_b, rest_time, notes FROM superset_sets WHERE superset_id = ? ORDER BY set_number",
+            (superset_id,)
+        ).fetchall()
+    return render_template("log_superset.html", user_id=user_id, username=user[0],
+                           exercise_id_a=ss[2], exercise_id_b=ss[3],
+                           name_a=ss[6], name_b=ss[7], local_date="",
+                           edit_mode=True, superset_id=superset_id, workout_id=workout_id,
+                           existing_intensity=ss[4], existing_notes=ss[5] or "",
+                           existing_sets=existing_sets)
+
+
 @app.route("/user/<int:user_id>/exercise/<int:exercise_id>/superset")
 def pick_superset_exercise(user_id, exercise_id):
     with get_conn() as conn:
