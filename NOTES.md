@@ -408,7 +408,7 @@ All numeric inputs loop until valid:
   - `GET /user/<id>/superset/<superset_id>/edit` — renders `log_superset.html` in edit mode pre-filled with existing data
   - `POST /user/<id>/superset/<superset_id>/edit` — UPDATEs `superset_instances`, deletes and reinserts `superset_sets`. Same caveat as above re: FK references on `superset_sets`.
   - `GET /user/<id>/exercise/<id>/superset` — muscle group picker then exercise list to select exercise B. Only reachable when session is active.
-  - `GET/POST /user/<id>/exercise/<id_a>/superset/<id_b>/log` — log superset form. Each set has side-by-side weight/reps for A and B, one shared rest field, optional set notes. On POST inserts into `superset_instances` + `superset_sets`, redirects to user home.
+  - `GET/POST /user/<id>/exercise/<id_a>/superset/<id_b>/log` — log superset form. Each set has side-by-side weight/reps for A and B, one shared rest field, optional set notes. On POST inserts into `superset_instances` + `superset_sets`, redirects to user home. Intensity defaults to `normal` via Jinja (no JS fallback needed).
   - Exercise history page shows "+ Create Superset" button below "+ Add Instance" — only when session is active
   - Session detail renders supersets as cards with "Exercise A + Exercise B" header and side-by-side set rows per set. Supersets are interleaved with regular instances in `workout_index` order — merged and sorted in the route via `all_items` list, not separately at the bottom.
   - Back loop when pressing back from log instance without committing is a known non-issue — unfixable without server-side session state, doesn't affect normal flow

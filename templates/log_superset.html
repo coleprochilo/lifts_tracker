@@ -99,9 +99,5 @@ function selectIntensity(el, val) {
   document.querySelectorAll('input[name="intensity"]').forEach(r => r.checked = r.value === val);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const normal = document.querySelector('.filter-btn:nth-child(2)');
-  if (normal) normal.classList.add('active');
-});
 </script>
 {% endblock %}
