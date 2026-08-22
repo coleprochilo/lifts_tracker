@@ -394,7 +394,8 @@ def log_instance(user_id, exercise_id):
                 sets.append((weight, rep, rest, sn or None))
             if sets:
                 workout_index = (conn.execute(
-                    "SELECT COUNT(*) FROM exercise_instances WHERE workout_id = ?", (workout_id,)
+                    "SELECT (SELECT COUNT(*) FROM exercise_instances WHERE workout_id = ?) + (SELECT COUNT(*) FROM superset_instances WHERE workout_id = ?)",
+                    (workout_id, workout_id)
                 ).fetchone()[0] or 0) + 1
                 conn.execute(
                     "INSERT INTO exercise_instances (workout_id, exercise_id, entered_name, intensity, workout_index, notes) VALUES (?, ?, ?, ?, ?, ?)",
