@@ -41,6 +41,7 @@
     {% endif %}
     <div style="margin-top:6px;">
       <span class="badge {{ entry.intensity }}">{{ entry.intensity }}</span>
+      {% if entry.superset %}<span class="badge" style="background:#1a1a3a; color:#4da6ff; margin-left:6px;">superset</span>{% endif %}
     </div>
   </div>
   {% endfor %}

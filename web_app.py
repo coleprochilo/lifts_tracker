@@ -44,8 +44,39 @@ def get_exercise_history(exercise_id, user_id):
             "notes": notes,
             "sets": ", ".join(data["sets"]),
             "rest": ", ".join(data["rests"]) if data["rests"] else None,
+            "superset": False,
         })
 
+    with get_conn() as conn:
+        for side in ("a", "b"):
+            ss_rows = conn.execute(f"""
+                SELECT si.superset_id, ws.date, si.intensity, si.workout_index, si.notes,
+                       ss.weight_{side}, ss.reps_{side}, ss.rest_time, ss.set_number
+                FROM superset_instances si
+                JOIN workout_sessions ws ON si.workout_id = ws.workout_id
+                JOIN superset_sets ss ON ss.superset_id = si.superset_id
+                WHERE si.exercise_id_{side} = ? AND ws.user_id = ?
+                ORDER BY ws.date ASC, si.superset_id ASC, ss.set_number ASC
+            """, (exercise_id, user_id)).fetchall()
+            ss_instances = {}
+            for row in ss_rows:
+                key = (row[0], row[1], row[2], row[3], row[4])
+                ss_instances.setdefault(key, {"sets": [], "rests": []})
+                ss_instances[key]["sets"].append(f"{_fmt_weight(row[5])}x{_fmt_weight(row[6])}")
+                if row[7] is not None:
+                    ss_instances[key]["rests"].append(str(_fmt_weight(row[7])))
+            for (superset_id, date, intensity, workout_index, notes), data in ss_instances.items():
+                history.append({
+                    "date": date,
+                    "intensity": intensity,
+                    "workout_index": workout_index,
+                    "notes": notes,
+                    "sets": ", ".join(data["sets"]),
+                    "rest": ", ".join(data["rests"]) if data["rests"] else None,
+                    "superset": True,
+                })
+
+    history.sort(key=lambda x: x["date"])
     return primary_name, history
 
 
