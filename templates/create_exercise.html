@@ -3,6 +3,30 @@
 <h1>New Exercise</h1>
 <div class="username-tag">{{ username.title() }}</div>
 
+{% if error_exact %}
+  <div style="background:#2a1a1a; border-radius:10px; padding:14px; margin-bottom:16px; color:#ff6b6b; font-size:0.9rem;">
+    An exercise named "{{ error_exact }}" already exists. No duplicate created.
+  </div>
+  <button type="button" onclick="location.replace('{{ url_for('muscle_group', user_id=user_id, group=group) }}')" style="width:100%; background:#1a1a1a; color:#ff6b6b; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer;">Back</button>
+
+{% elif similar %}
+  <div style="background:#1a1a1a; border-radius:10px; padding:14px; margin-bottom:16px; color:#aaa; font-size:0.9rem;">
+    Similar exercises already exist in {{ pending_group.title() }}:
+  </div>
+  {% for ex in similar %}
+  <div class="card" style="margin-bottom:8px;">
+    <div style="color:#f0f0f0;">{{ ex[1].title() }}</div>
+  </div>
+  {% endfor %}
+  <form method="post" action="{{ url_for('create_exercise', user_id=user_id, group=pending_group) }}">
+    <input type="hidden" name="primary_name" value="{{ pending_name }}">
+    <input type="hidden" name="muscle_group" value="{{ pending_group }}">
+    <input type="hidden" name="force" value="1">
+    <button type="submit" style="width:100%; background:#2979ff; color:#fff; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer; margin-bottom:10px;">Create Anyway</button>
+  </form>
+  <button type="button" onclick="location.replace('{{ url_for('muscle_group', user_id=user_id, group=pending_group) }}')" style="width:100%; background:#1a1a1a; color:#ff6b6b; border:none; padding:14px; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer;">Cancel</button>
+
+{% else %}
 <form id="new-exercise-form">
   <div class="section-title">Primary Name</div>
   <input type="text" id="primary-name" placeholder="e.g. Seated DB Row" autocomplete="off">
@@ -48,4 +72,5 @@
     form.submit();
   }
 </script>
+{% endif %}
 {% endblock %}

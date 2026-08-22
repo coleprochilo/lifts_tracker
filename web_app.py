@@ -141,7 +141,25 @@ def create_exercise(user_id, group):
         if request.method == "POST":
             primary_name = request.form.get("primary_name", "").strip()
             muscle_group = request.form.get("muscle_group", "").strip()
+            force = request.form.get("force", "")
             if primary_name and muscle_group:
+                exact = conn.execute(
+                    "SELECT exercise_id FROM exercises WHERE LOWER(primary_name) = LOWER(?) AND user_id = ?",
+                    (primary_name, user_id)
+                ).fetchone()
+                if exact:
+                    return render_template("create_exercise.html", user_id=user_id, username=user[0],
+                                           group=muscle_group, muscle_groups=muscle_groups,
+                                           error_exact=primary_name)
+                if not force:
+                    similar = conn.execute(
+                        "SELECT exercise_id, primary_name FROM exercises WHERE muscle_group = ? AND user_id = ? AND LOWER(primary_name) LIKE LOWER(?)",
+                        (muscle_group, user_id, f"%{primary_name}%")
+                    ).fetchall()
+                    if similar:
+                        return render_template("create_exercise.html", user_id=user_id, username=user[0],
+                                               group=muscle_group, muscle_groups=muscle_groups,
+                                               similar=similar, pending_name=primary_name, pending_group=muscle_group)
                 conn.execute("INSERT INTO exercises (primary_name, muscle_group, user_id) VALUES (?, ?, ?)", (primary_name, muscle_group, user_id))
             return redirect(url_for("muscle_group", user_id=user_id, group=muscle_group or group))
     return render_template("create_exercise.html", user_id=user_id, username=user[0],
