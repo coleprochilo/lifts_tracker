@@ -201,10 +201,19 @@ def create_exercise(user_id, group):
 def muscle_group(user_id, group):
     with get_conn() as conn:
         user = conn.execute("SELECT username FROM users WHERE user_id = ?", (user_id,)).fetchone()
-        exercises = conn.execute(
-            "SELECT exercise_id, primary_name FROM exercises WHERE muscle_group = ? AND user_id = ? ORDER BY primary_name",
-            (group, user_id)
-        ).fetchall()
+        exercises = conn.execute("""
+            SELECT e.exercise_id, e.primary_name
+            FROM exercises e
+            LEFT JOIN (
+                SELECT ei.exercise_id, MAX(ws.date) as last_date
+                FROM exercise_instances ei
+                JOIN workout_sessions ws ON ei.workout_id = ws.workout_id
+                WHERE ws.user_id = ?
+                GROUP BY ei.exercise_id
+            ) last ON e.exercise_id = last.exercise_id
+            WHERE e.muscle_group = ? AND e.user_id = ?
+            ORDER BY CASE WHEN last.last_date IS NULL THEN 1 ELSE 0 END, last.last_date DESC, e.primary_name ASC
+        """, (user_id, group, user_id)).fetchall()
     return render_template("muscle_group.html", user_id=user_id, username=user[0],
                            group=group, exercises=exercises)
 
