@@ -70,6 +70,49 @@
 <script>
 let setCount = {{ existing_sets|length if existing_sets else 1 }};
 
+{% if history_a or history_b %}
+</script>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:24px;">
+  <div>
+    <div class="section-title" style="margin-bottom:8px;">{{ name_a.title() }}</div>
+    {% if history_a %}
+      {% for entry in history_a | reverse %}
+      <div class="card" style="margin-bottom:8px;">
+        <div class="date-label">{{ entry.date }} &nbsp;·&nbsp; #{{ entry.workout_index }}</div>
+        <div class="set-row" style="font-size:0.85rem;">{{ entry.sets }}</div>
+        {% if entry.rest %}<div class="meta">rest: {{ entry.rest }}</div>{% endif %}
+        <div style="margin-top:4px;">
+          <span class="badge {{ entry.intensity }}">{{ entry.intensity }}</span>
+          {% if entry.superset %}<span class="badge" style="background:#1a1a3a; color:#4da6ff; margin-left:4px;">ss</span>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="color:#666; font-size:0.85rem;">No history.</p>
+    {% endif %}
+  </div>
+  <div>
+    <div class="section-title" style="margin-bottom:8px;">{{ name_b.title() }}</div>
+    {% if history_b %}
+      {% for entry in history_b | reverse %}
+      <div class="card" style="margin-bottom:8px;">
+        <div class="date-label">{{ entry.date }} &nbsp;·&nbsp; #{{ entry.workout_index }}</div>
+        <div class="set-row" style="font-size:0.85rem;">{{ entry.sets }}</div>
+        {% if entry.rest %}<div class="meta">rest: {{ entry.rest }}</div>{% endif %}
+        <div style="margin-top:4px;">
+          <span class="badge {{ entry.intensity }}">{{ entry.intensity }}</span>
+          {% if entry.superset %}<span class="badge" style="background:#1a1a3a; color:#4da6ff; margin-left:4px;">ss</span>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="color:#666; font-size:0.85rem;">No history.</p>
+    {% endif %}
+  </div>
+</div>
+<script>
+{% endif %}
+
 function addSet() {
   setCount++;
   const last = document.querySelector('#sets-container .set-block:last-child');

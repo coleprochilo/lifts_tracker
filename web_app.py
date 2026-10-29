@@ -557,7 +557,9 @@ def edit_superset(user_id, superset_id):
                            name_a=ss[6], name_b=ss[7], local_date="",
                            edit_mode=True, superset_id=superset_id, workout_id=workout_id,
                            existing_intensity=ss[4], existing_notes=ss[5] or "",
-                           existing_sets=existing_sets)
+                           existing_sets=existing_sets,
+                           history_a=get_exercise_history(ss[2], user_id)[1][-8:],
+                           history_b=get_exercise_history(ss[3], user_id)[1][-8:])
 
 
 @app.route("/user/<int:user_id>/exercise/<int:exercise_id>/superset")
@@ -643,7 +645,9 @@ def log_superset(user_id, exercise_id_a, exercise_id_b):
 
     return render_template("log_superset.html", user_id=user_id, username=user[0],
                            exercise_id_a=exercise_id_a, exercise_id_b=exercise_id_b,
-                           name_a=exercise_a[0], name_b=exercise_b[0], local_date=local_date)
+                           name_a=exercise_a[0], name_b=exercise_b[0], local_date=local_date,
+                           history_a=get_exercise_history(exercise_id_a, user_id)[1][-8:],
+                           history_b=get_exercise_history(exercise_id_b, user_id)[1][-8:])
 
 
 @app.route("/user/<int:user_id>/search")
